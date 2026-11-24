@@ -142,10 +142,14 @@ class Meteor{constructor(){this.reset(1)}
   bx.globalAlpha=this.a;bx.strokeStyle=g;bx.lineWidth=1.4;bx.beginPath();bx.moveTo(this.x,this.y);bx.lineTo(this.x+dx,this.y-dy);bx.stroke();bx.globalAlpha=1}}
 const meteors=Array.from({length:22},()=>new Meteor());
 
-let t0=performance.now(),drag=0,velocity=0,dragging=false,lx=0,moved=0;
-addEventListener('pointerdown',e=>{dragging=true;lx=e.clientX;moved=0;velocity=0});
-addEventListener('pointermove',e=>{if(!dragging)return;const d=e.clientX-lx;lx=e.clientX;moved+=Math.abs(d);velocity=d*.008;drag+=velocity});
-addEventListener('pointerup',()=>{if(dragging&&moved<5)t0=performance.now();dragging=false});
+let t0=performance.now(),yaw=0,pitch=0,velocityX=0,velocityY=0,dragging=false,lx=0,ly=0,moved=0;
+addEventListener('pointerdown',e=>{dragging=true;lx=e.clientX;ly=e.clientY;moved=0;velocityX=0;velocityY=0;try{bg.setPointerCapture(e.pointerId)}catch(_){}});
+addEventListener('pointermove',e=>{if(!dragging)return;
+ const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);
+ velocityX=dx*.008;velocityY=dy*.008;
+ yaw+=velocityX;pitch=clamp(pitch+velocityY,-1.05,1.05)});
+addEventListener('pointerup',e=>{if(dragging&&moved<5)t0=performance.now();dragging=false;try{bg.releasePointerCapture(e.pointerId)}catch(_){}});
+addEventListener('pointercancel',()=>{dragging=false});
 
 function frame(now){
  const t=(now-t0)/1000;U.t.value=t;
@@ -155,8 +159,8 @@ function frame(now){
  for(const s of stars){bx.globalAlpha=.3+.7*Math.abs(Math.sin(t*s.s+s.p));bx.fillStyle='#fff';bx.beginPath();bx.arc(s.x*W,s.y*H,s.r,0,6.283);bx.fill()}
  bx.globalAlpha=1;meteors.forEach(m=>{m.step();m.draw()});
 
- if(!dragging){drag+=velocity;velocity*=.94}
- plant.rotation.y=Math.sin(t*.4)*.18+drag;plant.position.y=Math.sin(t*.9)*.05;
+ if(!dragging){yaw+=velocityX;pitch=clamp(pitch+velocityY,-1.05,1.05);velocityX*=.94;velocityY*=.94}
+ plant.rotation.set(pitch+Math.sin(t*.35)*.035,Math.sin(t*.4)*.18+yaw,0);plant.position.y=Math.sin(t*.9)*.05;
 
  const sp=ease(t/3.6),vp=ease((t-1.75)/4);
  grow(stem,sp);grow(vine,vp);
