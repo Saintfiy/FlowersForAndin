@@ -1,182 +1,3817 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ETHEREAL ROSE — An Iridescent Botanical Experience</title>
-<style>
-html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:none}
-canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
-#h{position:fixed;left:0;right:0;bottom:calc(12px + env(safe-area-inset-bottom,0px));text-align:center;color:rgba(235,220,248,.62);font:italic 12px Georgia,'Times New Roman',serif;letter-spacing:.12em;text-shadow:0 0 14px rgba(210,184,255,.42);pointer-events:none}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#080612">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='%23090613'/><circle cx='32' cy='32' r='16' fill='%23f2cbe2' opacity='0.9'/></svg>">
+  <title>ETHERBLOOM — A Living Digital Sculpture</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      background: #080612;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      color: #f3ecf7
+    }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      background: transparent;
+      border: 1px solid rgba(235, 220, 246, .20);
+      cursor: pointer;
+      touch-action: manipulation;
+      outline: none
+    }
+
+    button:focus-visible {
+      border-color: rgba(248, 224, 255, .75);
+      box-shadow: 0 0 0 2px rgba(214, 162, 248, .28)
+    }
+
+    #ui {
+      position: fixed;
+      z-index: 2;
+      inset: 0;
+      pointer-events: none
+    }
+
+    #ui.hidden #mark,
+    #ui.hidden #phase,
+    #ui.hidden #dock {
+      opacity: 0 !important;
+      pointer-events: none !important
+    }
+
+    #mark {
+      position: absolute;
+      top: calc(24px + env(safe-area-inset-top, 0px));
+      left: calc(28px + env(safe-area-inset-left, 0px));
+      font-size: 11px;
+      letter-spacing: .24em;
+      color: rgba(247, 238, 252, .82);
+      text-shadow: 0 2px 16px rgba(6, 3, 14, .88);
+      transition: opacity .55s ease
+    }
+
+    #mark span {
+      opacity: .50
+    }
+
+    #phase {
+      position: absolute;
+      top: calc(25px + env(safe-area-inset-top, 0px));
+      right: calc(64px + env(safe-area-inset-right, 0px));
+      color: rgba(238, 222, 249, .62);
+      font-size: 10px;
+      letter-spacing: .20em;
+      text-transform: uppercase;
+      text-shadow: 0 2px 14px rgba(6, 3, 14, .88);
+      transition: opacity .55s ease, color .45s ease
+    }
+
+    #hud-toggle {
+      position: absolute;
+      top: calc(19px + env(safe-area-inset-top, 0px));
+      right: calc(24px + env(safe-area-inset-right, 0px));
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      background: rgba(18, 12, 32, .45);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-color: rgba(235, 220, 246, .20);
+      color: rgba(242, 232, 252, .68);
+      opacity: .74;
+      transition: opacity .45s ease, border-color .35s ease, background .35s ease, transform .24s ease
+    }
+
+    #hud-toggle:hover {
+      opacity: 1;
+      border-color: rgba(248, 228, 255, .52);
+      background: rgba(42, 28, 72, .56)
+    }
+
+    #hud-toggle:active {
+      transform: scale(.92)
+    }
+
+    #ui.hidden #hud-toggle {
+      opacity: .28
+    }
+
+    #ui.hidden #hud-toggle:hover {
+      opacity: .86
+    }
+
+    #dock {
+      position: absolute;
+      bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      left: 12px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+      transition: opacity .55s ease
+    }
+
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 9px;
+      max-width: 100%;
+      pointer-events: auto;
+      opacity: 0;
+      animation: fadeInControls 1.9s cubic-bezier(.22, 1, .36, 1) 1.6s forwards
+    }
+
+    #controls button {
+      position: relative;
+      padding: 9px 15px;
+      min-height: 38px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(28, 19, 46, .54) 0%, rgba(12, 8, 24, .66) 100%);
+      backdrop-filter: blur(14px) saturate(1.15);
+      -webkit-backdrop-filter: blur(14px) saturate(1.15);
+      color: rgba(244, 236, 251, .84);
+      font-size: 9px;
+      letter-spacing: .15em;
+      white-space: nowrap;
+      box-shadow: 0 4px 18px rgba(3, 1, 10, .45), inset 0 1px 0 rgba(255, 244, 255, .11);
+      transition: background .35s ease, border-color .35s ease, color .35s ease, box-shadow .35s ease, opacity .35s ease, transform .24s cubic-bezier(.22, 1, .36, 1)
+    }
+
+    #controls button:hover {
+      background: linear-gradient(180deg, rgba(235, 205, 248, .20) 0%, rgba(162, 118, 212, .16) 100%);
+      border-color: rgba(248, 228, 255, .56);
+      color: rgba(255, 250, 255, .98);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px rgba(196, 148, 240, .24), inset 0 1px 0 rgba(255, 255, 255, .20)
+    }
+
+    #controls button:active {
+      transform: scale(.96)
+    }
+
+    #controls button.active {
+      background: linear-gradient(180deg, rgba(228, 186, 246, .24) 0%, rgba(154, 108, 204, .20) 100%);
+      border-color: rgba(246, 218, 255, .64);
+      color: #fff9fe;
+      box-shadow: 0 0 22px rgba(218, 166, 250, .28), inset 0 1px 0 rgba(255, 255, 255, .24)
+    }
+
+    #controls button.dimmed {
+      opacity: .36
+    }
+
+    #sound.sound-invite {
+      animation: soundInviteGlow 3.2s ease-in-out infinite
+    }
+
+    @keyframes soundInviteGlow {
+
+      0%,
+      100% {
+        border-color: rgba(235, 220, 246, .20);
+        box-shadow: 0 4px 18px rgba(3, 1, 10, .45), inset 0 1px 0 rgba(255, 244, 255, .11)
+      }
+
+      50% {
+        border-color: rgba(244, 212, 255, .52);
+        box-shadow: 0 0 18px rgba(214, 166, 250, .24), inset 0 1px 0 rgba(255, 248, 255, .20)
+      }
+    }
+
+    @media(max-width:600px) {
+      #mark {
+        left: calc(16px + env(safe-area-inset-left, 0px));
+        font-size: 10px;
+        letter-spacing: .20em
+      }
+
+      #phase {
+        right: calc(50px + env(safe-area-inset-right, 0px));
+        font-size: 9px
+      }
+
+      #hud-toggle {
+        top: calc(18px + env(safe-area-inset-top, 0px));
+        right: calc(14px + env(safe-area-inset-right, 0px));
+        width: 24px;
+        height: 24px
+      }
+
+      #dock {
+        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+        left: 10px;
+        right: 10px;
+        gap: 8px
+      }
+
+      #controls {
+        gap: 6px
+      }
+
+      #controls button {
+        padding: 8px 11px;
+        min-height: 36px;
+        font-size: 8.5px;
+        letter-spacing: .10em
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important
+      }
+    }
+
+    @keyframes fadeInControls {
+      from {
+        opacity: 0;
+        transform: translateY(8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+  </style>
 </head>
+
 <body>
-<canvas id="bg"></canvas><canvas id="gl"></canvas>
-<div id="h">Fresh flower code for Andin by Restu</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script>
-const bg=document.getElementById('bg'),bx=bg.getContext('2d');
-let W,H,DPR=Math.min(devicePixelRatio||1,(innerWidth<768?1.5:2));
-const renderer=new THREE.WebGLRenderer({canvas:document.getElementById('gl'),antialias:true,alpha:true});
-renderer.setClearColor(0x000000,0);renderer.outputEncoding=THREE.sRGBEncoding;
-const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(40,1,.1,100);
-function resize(){W=innerWidth;H=innerHeight;bg.width=W*DPR;bg.height=H*DPR;bx.setTransform(DPR,0,0,DPR,0,0);
- renderer.setPixelRatio(DPR);renderer.setSize(W,H,false);cam.aspect=W/H;
- const portrait=H>W;cam.position.set(0,portrait?2.65:2.5,Math.max(portrait?13:11,6/cam.aspect));cam.lookAt(0,.45,0);cam.updateProjectionMatrix()}
-addEventListener('resize',resize);resize();
+  <canvas id="gl"></canvas>
 
-const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)),lerp=(a,b,t)=>a+(b-a)*t;
-const ease=x=>1-Math.pow(1-clamp(x),3),sstep=(a,b,x)=>{x=clamp((x-a)/(b-a));return x*x*(3-2*x)};
-const eob=x=>{x=clamp(x);const c=1.70158;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
-let sd=11;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647};
-function tex(draw,n=128){const k=document.createElement('canvas');k.width=k.height=n;draw(k.getContext('2d'),n);return new THREE.CanvasTexture(k)}
-const starTex=tex(x=>{x.translate(64,64);x.fillStyle='#fff';x.shadowColor='#d9b8ff';x.shadowBlur=10;x.beginPath();[[0,-58],[5,-5],[24,0],[5,5],[0,58],[-5,5],[-24,0],[-5,-5]].forEach(p=>x.lineTo(p[0],p[1]));x.fill()});
-const sprite=(t,s,o)=>{const m=new THREE.Sprite(new THREE.SpriteMaterial({map:t,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,opacity:o}));m.scale.setScalar(s);return m};
-function grid(nu,nv,pos,col){const idx=[];for(let j=0;j<nv;j++)for(let i=0;i<nu;i++){const a=j*(nu+1)+i,b=a+nu+1;idx.push(a,b,a+1,b,b+1,a+1)}
- const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();return g}
+  <div id="ui">
+    <div id="mark">For Andin Only <span>/</span></div>
+    <div id="phase" aria-live="polite">THE VOID</div>
+    <button id="hud-toggle" type="button" aria-label="Hide interface" title="Hide interface (H)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z" />
+        <circle cx="12" cy="12" r="2.8" />
+      </svg>
+    </button>
+    <div id="dock">
+      <nav id="controls" aria-label="Artwork controls">
+        <button id="decay" type="button">DECAY</button>
+        <button id="rebirth" type="button">REBIRTH</button>
+        <button id="particles" type="button">FIELD ON</button>
+        <button id="infinite" type="button">INFINITE FLOWER</button>
+        <button id="sound" type="button">SOUND OFF</button>
+      </nav>
+    </div>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    'use strict';
 
-function blob(x,cx,cy,r,c0,c1){const g=x.createRadialGradient(cx,cy,0,cx,cy,r);g.addColorStop(0,c0);g.addColorStop(1,c1);x.fillStyle=g;x.fillRect(0,0,256,256)}
-function matcap(stops,acc){return tex((x)=>{x.fillStyle='#000';x.fillRect(0,0,256,256);x.save();x.beginPath();x.arc(128,128,128,0,6.2832);x.clip();
- let g=x.createRadialGradient(96,84,8,128,128,160);stops.forEach((s,i)=>g.addColorStop(i/(stops.length-1),s));x.fillStyle=g;x.fillRect(0,0,256,256);
- g=x.createLinearGradient(0,118,0,196);g.addColorStop(0,'rgba(50,30,95,0)');g.addColorStop(.5,'rgba(70,45,110,.26)');g.addColorStop(1,'rgba(255,210,240,0)');x.fillStyle=g;x.fillRect(0,118,256,80);
- blob(x,208,210,78,acc[0]+'.9)',acc[0]+'0)');blob(x,38,196,50,acc[1]+'.7)',acc[1]+'0)');blob(x,196,52,44,acc[2]+'.55)',acc[2]+'0)');
- blob(x,84,66,34,'rgba(255,255,255,1)','rgba(255,255,255,0)');
- x.strokeStyle='rgba(255,255,255,.4)';x.lineWidth=12;x.beginPath();x.arc(128,128,122,0,6.2832);x.stroke();x.restore()},256)}
-const mcPearl=matcap(['#fffafd','#fff0df','#f8dcec','#d9c8f2','#a995c8'],['rgba(199,234,245,','rgba(233,187,216,','rgba(255,240,223,']);
-const mcLeaf=matcap(['#fff7ff','#d9c8f2','#c7eaf5','#9f92c4','#6f668f'],['rgba(199,234,245,','rgba(233,187,216,','rgba(248,220,236,']);
-[mcPearl,mcLeaf].forEach(t=>t.encoding=THREE.sRGBEncoding);
-scene.add(new THREE.HemisphereLight(0xd9c8f2,0x171020,.8));
-const key=new THREE.DirectionalLight(0xfff0df,1.45);key.position.set(-3,5,6);scene.add(key);
-const fill=new THREE.DirectionalLight(0xbecfff,.65);fill.position.set(4,2,3);scene.add(fill);
-const rim=new THREE.DirectionalLight(0xf3b5dc,.8);rim.position.set(2,-1,-5);scene.add(rim);
+    // ============================================================================
+    // RENDERER, SCENE, VIEWPORT & GPU ATMOSPHERIC GALLERY BACKDROP
+    // ============================================================================
+    const glCanvas = document.getElementById('gl');
+    const isTouchDevice = matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+    const isMobileViewport = () => Math.min(innerWidth, innerHeight) < 768 || isTouchDevice;
+    const getViewportSize = () => ({
+      w: Math.max(1, Math.round(window.visualViewport ? window.visualViewport.width : innerWidth)),
+      h: Math.max(1, Math.round(window.visualViewport ? window.visualViewport.height : innerHeight))
+    });
+    let { w: W, h: H } = getViewportSize();
+    let dprScale = 1, avgFrameDt = 0.016, slowFrameStreak = 0;
+    let DPR = Math.min(devicePixelRatio || 1, isMobileViewport() ? 1.5 : 2);
+    const getScreenScale = () => Math.min(1, Math.max(0.48, W / 900));
 
-const U={t:{value:0}};
-function mat(map,vc,color){const m=new THREE.MeshMatcapMaterial({matcap:map,vertexColors:!!vc,side:THREE.DoubleSide,color:color||0xffffff});
- m.onBeforeCompile=s=>{s.uniforms.uT=U.t;s.uniforms.uView={value:cam.matrixWorldInverse};
- s.vertexShader='uniform float uT;uniform mat4 uView;\n'+s.vertexShader.replace('#include <project_vertex>',
- 'vec4 wp=modelMatrix*vec4(transformed,1.0);float hh=max(wp.y+2.7,0.0);wp.x+=sin(uT*.9+wp.y*.6)*.0028*hh*hh+sin(uT*1.7+wp.y*1.3)*.012*hh;wp.z+=cos(uT*.7+wp.y*.5)*.0018*hh*hh;vec4 mvPosition=uView*wp;gl_Position=projectionMatrix*mvPosition;')};return m}
-const woodMat=mat(mcPearl,false),petalMat=mat(mcPearl,true),leafMat=mat(mcLeaf,true);
+    const renderer = new THREE.WebGLRenderer({
+      canvas: glCanvas,
+      antialias: !isMobileViewport() || (devicePixelRatio || 1) < 2,
+      alpha: false,
+      powerPreference: 'high-performance'
+    });
+    renderer.setClearColor(0x040208, 1);
+    renderer.outputEncoding = THREE.sRGBEncoding;
 
-const plant=new THREE.Group();scene.add(plant);
+    glCanvas.addEventListener('webglcontextlost', e => { e.preventDefault(); }, false);
+    glCanvas.addEventListener('webglcontextrestored', () => { resize(); }, false);
 
-function tube(curve,N,radial,rf){
- const fr=curve.computeFrenetFrames(N,false),pos=[],nor=[],idx=[];
- for(let i=0;i<=N;i++){const p=curve.getPointAt(i/N),r=rf(i/N),n=fr.normals[i],b=fr.binormals[i];
-  for(let j=0;j<=radial;j++){const a=j/radial*6.2832,c=Math.cos(a),s=Math.sin(a),x=n.x*c+b.x*s,y=n.y*c+b.y*s,z=n.z*c+b.z*s;
-   pos.push(p.x+x*r,p.y+y*r,p.z+z*r);nor.push(x,y,z)}}
- for(let i=0;i<N;i++)for(let j=0;j<radial;j++){const a=i*(radial+1)+j,b=a+radial+1;idx.push(a,b,a+1,b,b+1,a+1)}
- const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));g.setIndex(idx);g.userData={N,seg:radial*6};return g}
-function branch(pts,r0,r1,step,th0){
- const curve=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p))),N=190;
- const mesh=new THREE.Mesh(tube(curve,N,7,u=>lerp(r0,r1,u)),woodMat);mesh.frustumCulled=false;plant.add(mesh);
- const fr=curve.computeFrenetFrames(100,false),thorns=[];
- for(let i=3;i<98;i+=step){const u=i/100,p=curve.getPointAt(u),t=curve.getTangentAt(u),a=i*1.9;
-  const n=fr.normals[i].clone().multiplyScalar(Math.cos(a)).addScaledVector(fr.binormals[i],Math.sin(a));
-  const h=th0*(1+rnd()*.7),th=new THREE.Mesh(new THREE.ConeGeometry(.02,h,5),woodMat);
-  th.position.copy(p).addScaledVector(n,lerp(r0,r1,u)*.8);
-  th.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),n.clone().multiplyScalar(.85).addScaledVector(t,.45).normalize());
-  th.translateY(h*.35);plant.add(th);thorns.push({th,u})}
- return{curve,mesh,thorns}}
-function grow(b,p){const g=b.mesh.geometry.userData;b.mesh.geometry.setDrawRange(0,Math.floor(p*g.N)*g.seg);
- b.thorns.forEach(o=>{const s=eob((p-o.u)*12);o.th.visible=s>.01;o.th.scale.setScalar(Math.max(s,.001))})}
+    const scene = new THREE.Scene();
+    const cam = new THREE.PerspectiveCamera(40, 1, 0.05, 100);
+    const baseCamPos = new THREE.Vector3();
+    const camTarget = new THREE.Vector3(0, 0.45, 0);
+    let particleUniforms = null, dustUniforms = null, pollenUniforms = null, sparkUniforms = null, beadUniforms = null, ambientUniforms = null, stamenPearlUniforms = null, budAntherMat = null;
 
-function Pf(e){e=clamp(e);return(.2+.9*Math.pow(Math.sin(Math.PI*(.08+.84*Math.pow(e,.8))),.7))*(.55+.45*sstep(0,.35,e))}
-function buildHead(N){
- const petals=[],g=new THREE.Group();
-for(let i=0;i<N;i++){const k=i/(N-1),nu=12,nv=14,col=[],tone=.96+rnd()*.045;
- for(let j=0;j<=nv;j++){const v=j/nv;for(let q=0;q<=nu;q++){const u=q/nu*2-1,au=Math.abs(u);
-  const satin=.78+.22*Math.sin(v*Math.PI)*(.72+.28*Math.cos(u*Math.PI*.7));
-  const edge=1-.18*Math.pow(au,5)*(1-v*.25);const vein=.985+.015*Math.exp(-Math.pow(u/.09,2))*Math.sin(v*Math.PI);
-  const f=(satin*edge*vein)*tone;col.push(f,f*.985,f+.015*Math.sin(v*Math.PI)*(.8+.2*k))}}
- const y0=(1-k)*.25,top=1.9-.65*Math.pow(k,1.2)+(rnd()-.5)*.18*k;
- const p={k,nu,nv,a:i*2.39996+(rnd()-.5)*.28,y0,L:top-y0,al:Math.max(lerp(3.3,.62,Math.pow(k,.45)),.62)*(.94+rnd()*.10),
-  rim:Math.max(0,k-.2)*1.45+rnd()*.18,delay:(1-k)*.38+k*.04,ph:rnd()*6.28,tilt:(rnd()-.5)*.22};
-  p.geo=grid(nu,nv,new Array((nu+1)*(nv+1)*3).fill(0),col);p.geo.attributes.position.setUsage(THREE.DynamicDrawUsage);
-  p.mesh=new THREE.Mesh(p.geo,petalMat);p.mesh.frustumCulled=false;g.add(p.mesh);petals.push(p)}
- return{g,petals}}
-function bloomHead(h,bloom,t){
- for(const p of h.petals){
-  const b=ease((bloom-p.delay)/.55),sc=(.25+.75*p.k)*lerp(.55,1,b)*(1+(bloom>.95?Math.sin(t*.8+p.ph)*.02:0));
-  const pos=p.geo.attributes.position.array,ca=Math.cos(p.a),sa=Math.sin(p.a);
-  for(let j=0;j<=p.nv;j++){const v=j/p.nv,hh=p.y0+v*p.L,tp=v>.72?Math.sqrt(Math.max(0,1-Math.pow((v-.72)/.28,2))):1,wp=(.55+.45*sstep(0,.4,v))*Math.max(tp,.2);
-   const rho0=Math.max(Pf(hh/1.9)*sc+p.rim*b*Math.pow(sstep(.78,1,v),1.5)*.3,.06);
-   for(let q=0;q<=p.nu;q++){const u=q/p.nu*2-1,au=Math.abs(u),th=u*p.al*wp+p.tilt*v;
-    const centerCup=-.16*Math.sin(v*Math.PI)*Math.exp(-au*au*.9)*b;
-    const wav=.018*Math.sin(u*7+p.ph)*Math.sin(v*Math.PI)*b;
-    const edgeWave=v>.72?.012*Math.sin(u*9+p.ph)*Math.pow((v-.72)/.28,2):0;
-    const rho=rho0+au*au*au*.18*b*v*v+wav+edgeWave,X=rho*Math.sin(th),Z=rho*Math.cos(th),i=(j*(p.nu+1)+q)*3;
-    pos[i]=X*ca+Z*sa;pos[i+1]=hh+centerCup+Math.sin(u*3+p.ph)*.012*v;pos[i+2]=-X*sa+Z*ca}}
-  p.geo.attributes.position.needsUpdate=true;p.geo.computeVertexNormals()}}
+    const bgUniforms = {
+      uTime: { value: 0 },
+      uAspect: { value: W / H },
+      uPan: { value: new THREE.Vector2(0, 0) },
+      uReveal: { value: 0 },
+      uDecay: { value: 0 },
+      uInfBloom: { value: 0 },
+      uInfTravel: { value: 0 },
+      uInfShock: { value: 0 },
+      uShockOrigin: { value: new THREE.Vector2(0.5, 0.45) },
+      uHeartUv: { value: new THREE.Vector2(0.5, 0.45) },
+      uHeartBeat: { value: 0 },
+      uPointerUv: { value: new THREE.Vector2(0.5, 0.5) },
+      uPointerGlow: { value: 0 }
+    };
 
-function leafGeo(L,Wd,bend,twist){
- const nu=6,nv=18,pos=[],col=[],ph=rnd()*6;
- for(let j=0;j<=nv;j++){const v=j/nv,w=Wd*Math.sin(Math.PI*Math.pow(v,.72))*(1+.08*Math.sin(v*38+ph)),yc=bend*L*v*v,zc=-.24*L*v*v,tw=twist*v;
-  for(let i=0;i<=nu;i++){const u=i/nu*2-1,au=Math.abs(u),y=u*w,z=au*w*.62;
-   pos.push(v*L,yc+y*Math.cos(tw)-z*Math.sin(tw),zc+y*Math.sin(tw)+z*Math.cos(tw));
-   const vein=1-.12*Math.exp(-Math.pow(u/.035,2));const rim=.82+.18*sstep(.55,1,v);const f=(.74+.26*Math.sin(v*Math.PI*.9))*rim*vein;col.push(f,f+.015*(1-au),f+.055*(1-au))}}
- return grid(nu,nv,pos,col)}
-function butterfly(color){
- const ws=new THREE.Shape();ws.moveTo(0,0);ws.bezierCurveTo(.1,.28,.5,.42,.55,.2);ws.bezierCurveTo(.58,.04,.32,-.02,.12,-.03);ws.bezierCurveTo(.3,-.06,.4,-.34,.22,-.36);ws.bezierCurveTo(.1,-.33,.05,-.16,0,0);
- const geo=new THREE.ShapeGeometry(ws),pp=geo.attributes.position,cc=[];for(let i=0;i<pp.count;i++){const f=.5+.5*Math.min(1,pp.getX(i)/.35);cc.push(f,f,f)}geo.setAttribute('color',new THREE.Float32BufferAttribute(cc,3));const m=mat(mcPearl,true,color);
- const g=new THREE.Group(),wl=new THREE.Group(),wr=new THREE.Group(),a=new THREE.Mesh(geo,m),b=new THREE.Mesh(geo,m);b.scale.x=-1;
- wl.add(a);wr.add(b); const body=new THREE.Mesh(new THREE.CylinderGeometry(.018,.012,.42,6),mat(mcPearl,false,0x4a3a66));body.position.y=-.1;
- const antennaMat=new THREE.LineBasicMaterial({color:0xd9c8f2,transparent:true,opacity:.72});
- for(const side of [-1,1]){const pts=[new THREE.Vector3(side*.012,.08,.01),new THREE.Vector3(side*.075,.22,.02),new THREE.Vector3(side*.11,.31,.01)];const antenna=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),antennaMat);g.add(antenna)}
- g.add(body,wl,wr);g.scale.setScalar(.001);scene.add(g);return{g,wl,wr}}
+    const bgQuad = new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 2),
+      new THREE.ShaderMaterial({
+        uniforms: bgUniforms,
+        depthTest: false,
+        depthWrite: false,
+        vertexShader: `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = vec4(position.xy, 0.9999, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform float uTime;
+          uniform float uAspect;
+          uniform vec2 uPan;
+          uniform float uReveal;
+          uniform float uDecay;
+          uniform float uInfBloom;
+          uniform float uInfTravel;
+          uniform float uInfShock;
+          uniform vec2 uShockOrigin;
+          uniform vec2 uHeartUv;
+          uniform float uHeartBeat;
+          uniform vec2 uPointerUv;
+          uniform float uPointerGlow;
+          varying vec2 vUv;
 
-const stem=branch([[0,-2.6,0],[.08,-1.5,.1],[-.05,-.3,-.06],[.02,.9,.05],[.04,2,0]],.03,.07,6,.1);
-const leaves=[[0,1.6,2.75,.7,.75,.2,.25,.6],[0,1.25,3.3,.3,1.0,.26,-.2,-.5],[0,.85,3.6,.5,.7,.2,.3,.7],[.04,.55,.7,-.5,.9,.22,-.25,.5],[.05,.2,.1,-.7,.95,.2,.2,-.6],[.03,1.95,.15,-.9,.6,.15,.2,.4]].map((d,i)=>{
- const m=new THREE.Mesh(leafGeo(d[4],d[5],d[6],d[7]),leafMat);m.position.set(d[0],d[1],0);m.rotation.z=d[2];m.rotation.y=d[3];m.scale.setScalar(.001);plant.add(m);return{m,t:3.6*(1-Math.cbrt(1-(d[1]+2.6)/4.6))+.35,z:d[2]}});
-const head=buildHead(36);plant.add(head.g);const core=new THREE.Mesh(new THREE.SphereGeometry(.13,14,10),woodMat);core.position.y=1.5;core.scale.y=1.4;head.g.add(core);head.g.rotation.set(.12,0,.1);
-for(let i=0;i<5;i++){const sg=new THREE.Group(),sc=new THREE.Mesh(leafGeo(.75,.09,.25,.5),leafMat);sc.position.set(.12,.05,0);sc.rotation.z=-.75;sg.rotation.y=i*1.2566+.3;sg.add(sc);head.g.add(sg)}
-const flies=[{...butterfly(0xd2b8ff),c:[-2,-.4,.5],ph:0},{...butterfly(0xffbfe3),c:[2.1,2.4,.3],ph:2}];
-const spots=[[-2.3,.9,0,.5],[-2,.3,0,.32],[2.25,.2,0,.5],[2.05,-.4,0,.32],[-1.7,2.5,0,.3],[1.5,-1.6,0,.3]];
-const sparks=spots.map(s=>{const m=sprite(starTex,s[3],0);m.position.set(s[0],s[1],s[2]);m.userData={p:rnd()*6.28,v:1+rnd()*1.5,z:s[3]};scene.add(m);return m});
+          float hash21(vec2 p) {
+            p = fract(p * vec2(123.34, 456.21));
+            p += dot(p, p + 45.32);
+            return fract(p.x * p.y);
+          }
 
-const stars=Array.from({length:130},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.3+.3,p:Math.random()*6.28,s:Math.random()*2+.5}));
-class Meteor{constructor(){this.reset(1)}
- reset(i){this.x=Math.random()*W*1.4-W*.2;this.y=i?Math.random()*H:-60;this.l=120+Math.random()*100;this.v=4+Math.random()*5;this.a=.3+Math.random()*.5;this.c=['#ea80b0','#fff','#ffc0dd'][(Math.random()*3)|0]}
- step(){this.x-=this.v*.87;this.y+=this.v*.8;if(this.y>H+60||this.x<-200)this.reset(0)}
- draw(){const dx=this.l*.5,dy=this.l*.87,g=bx.createLinearGradient(this.x,this.y,this.x+dx,this.y-dy);g.addColorStop(0,this.c);g.addColorStop(1,'rgba(0,0,0,0)');
-  bx.globalAlpha=this.a;bx.strokeStyle=g;bx.lineWidth=1.4;bx.beginPath();bx.moveTo(this.x,this.y);bx.lineTo(this.x+dx,this.y-dy);bx.stroke();bx.globalAlpha=1}}
-const meteors=Array.from({length:22},()=>new Meteor());
+          float vnoise(vec2 p) {
+            vec2 i = floor(p), f = fract(p);
+            vec2 u = f * f * (3.0 - 2.0 * f);
+            return mix(
+              mix(hash21(i), hash21(i + vec2(1.0, 0.0)), u.x),
+              mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), u.x),
+              u.y
+            );
+          }
 
-let t0=performance.now(),yaw=0,pitch=0,velocityX=0,velocityY=0,dragging=false,lx=0,ly=0,moved=0;
-addEventListener('pointerdown',e=>{dragging=true;lx=e.clientX;ly=e.clientY;moved=0;velocityX=0;velocityY=0;try{bg.setPointerCapture(e.pointerId)}catch(_){}});
-addEventListener('pointermove',e=>{if(!dragging)return;
- const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;moved+=Math.abs(dx)+Math.abs(dy);
- velocityX=dx*.008;velocityY=dy*.008;
- yaw+=velocityX;pitch=clamp(pitch+velocityY,-1.05,1.05)});
-addEventListener('pointerup',e=>{if(dragging&&moved<5)t0=performance.now();dragging=false;try{bg.releasePointerCapture(e.pointerId)}catch(_){}});
-addEventListener('pointercancel',()=>{dragging=false});
+          float fbm(vec2 p) {
+            float v = 0.0, a = 0.5;
+            mat2 rot = mat2(0.80, -0.60, 0.60, 0.80);
+            for (int i = 0; i < 4; i++) {
+              v += a * vnoise(p);
+              p = rot * p * 2.04 + vec2(1.7, 9.2);
+              a *= 0.5;
+            }
+            return v;
+          }
 
-function frame(now){
- const t=(now-t0)/1000;U.t.value=t;
- bx.fillStyle='#000';bx.fillRect(0,0,W,H);
- let neb=bx.createRadialGradient(W*.28,H*.38,0,W*.28,H*.38,W*.42);neb.addColorStop(0,'rgba(104,76,150,.10)');neb.addColorStop(.55,'rgba(76,48,112,.045)');neb.addColorStop(1,'rgba(0,0,0,0)');bx.fillStyle=neb;bx.fillRect(0,0,W,H);
- neb=bx.createRadialGradient(W*.68,H*.62,0,W*.68,H*.62,W*.34);neb.addColorStop(0,'rgba(205,126,174,.07)');neb.addColorStop(.6,'rgba(112,75,140,.035)');neb.addColorStop(1,'rgba(0,0,0,0)');bx.fillStyle=neb;bx.fillRect(0,0,W,H);
- for(const s of stars){bx.globalAlpha=.3+.7*Math.abs(Math.sin(t*s.s+s.p));bx.fillStyle='#fff';bx.beginPath();bx.arc(s.x*W,s.y*H,s.r,0,6.283);bx.fill()}
- bx.globalAlpha=1;meteors.forEach(m=>{m.step();m.draw()});
+          float meteorStreak(vec2 p, float tCycle, float seed) {
+            float t = fract(uTime * 0.092 + seed);
+            float isAlive = smoothstep(0.0, 0.03, t) * (1.0 - smoothstep(0.11, 0.17, t));
+            if (isAlive <= 0.001) return 0.0;
+            float prog = clamp(t / 0.16, 0.0, 1.0);
+            vec2 start = vec2(-0.55 * uAspect + seed * 0.6, 0.42 - seed * 0.18);
+            vec2 dir = normalize(vec2(0.92, -0.38));
+            vec2 head = start + dir * (prog * 1.15);
+            vec2 rel = p - head;
+            float along = dot(rel, dir);
+            float perp = length(rel - dir * along);
+            float tail = smoothstep(-0.34, 0.0, along) * (1.0 - smoothstep(0.0, 0.025, along));
+            return exp(-perp * 240.0) * tail * isAlive;
+          }
 
- if(!dragging){yaw+=velocityX;pitch=clamp(pitch+velocityY,-1.05,1.05);velocityX*=.94;velocityY*=.94}
- plant.rotation.set(pitch+Math.sin(t*.35)*.035,Math.sin(t*.4)*.18+yaw,0);plant.position.y=Math.sin(t*.9)*.05;
+          void main() {
+            vec2 p = (vUv - 0.5) * vec2(uAspect, 1.0);
+            vec2 heart = (uHeartUv - 0.5) * vec2(uAspect, 1.0);
 
- const sp=ease(t/3.6);
- grow(stem,sp);
- for(const l of leaves){const s=eob(t-l.t);l.m.scale.setScalar(Math.max(s,.001));l.m.rotation.z=l.z+Math.sin(t*1.3+l.t)*.05}
- const bloom=clamp((t-3.8)/5.2),hs=ease((t-2.8)/1.2)*(.55+.45*ease(bloom));
- head.g.position.copy(stem.curve.getPointAt(Math.min(sp,1)));
- head.g.scale.setScalar(Math.max(.9*hs,.001));head.g.visible=hs>.002;
- head.g.rotation.x=.12+Math.sin(t*.6)*.03;head.g.rotation.z=.1+Math.sin(t*.5)*.04;
- bloomHead(head,bloom,t);
- for(const f of flies){const a=t*.8+f.ph,fl=Math.sin(t*14+f.ph)*.9+.3;
-  f.g.position.set(f.c[0]+Math.cos(a)*.4,f.c[1]+Math.sin(a*1.4)*.35,f.c[2]+Math.sin(a)*.5);
-  f.g.rotation.set(0,Math.sin(a)*.8,Math.cos(a*1.4)*.3);f.wl.rotation.y=fl;f.wr.rotation.y=-fl;
-  f.g.scale.setScalar(Math.max(eob((t-6.5)/1)*.7,.001))}
- const sa=clamp((t-5)/2);for(const s of sparks){const k=.35+.65*Math.abs(Math.sin(t*s.userData.v+s.userData.p));s.material.opacity=sa*k;s.scale.setScalar(s.userData.z*(.7+.3*k))}
+            // 1. Deep nocturnal twilight gallery gradient (balanced sRGB velvet depth)
+            float skyRadial = length((vUv - vec2(0.5 + uPan.x * 0.035, 0.44 + uPan.y * 0.035)) * vec2(uAspect * 0.70, 1.0));
+            vec3 skyCenter = mix(vec3(0.095, 0.064, 0.168), vec3(0.072, 0.048, 0.125), uDecay * 0.55);
+            skyCenter = mix(skyCenter, vec3(0.128, 0.072, 0.215), uInfBloom * 0.65);
+            vec3 skyEdge = vec3(0.015, 0.009, 0.032);
+            vec3 col = mix(skyCenter, skyEdge, smoothstep(0.0, 0.92, skyRadial));
 
- renderer.render(scene,cam);requestAnimationFrame(frame)}
-requestAnimationFrame(frame);
-</script>
+            // 2. Domain-warped silky aurora veils drifting softly behind the sculpture
+            vec2 q = p * 1.55 + uPan * 0.14;
+            float n1 = fbm(q + vec2(uTime * 0.018, -uTime * 0.012));
+            float n2 = fbm(q * 1.35 + vec2(n1 * 1.25, uTime * 0.021));
+            float ribbon1 = exp(-pow((p.y - 0.05 + (n1 - 0.5) * 0.44) * 2.6, 2.0)) * smoothstep(0.20, 0.78, n2);
+            float ribbon2 = exp(-pow((p.x * 0.42 + p.y - 0.02 + (n2 - 0.5) * 0.36) * 2.2, 2.0)) * smoothstep(0.22, 0.80, n1);
+
+            float auraMask = (0.45 + 0.55 * uReveal) * mix(1.0, 0.72, uDecay * 0.45);
+            vec3 aurRose = mix(vec3(0.46, 0.22, 0.44), vec3(0.66, 0.28, 0.60), uInfBloom);
+            vec3 aurAqua = mix(vec3(0.16, 0.36, 0.56), vec3(0.24, 0.50, 0.78), uInfBloom);
+            vec3 aurGold = vec3(0.64, 0.44, 0.34);
+            col += aurRose * ribbon1 * (0.24 + 0.10 * uInfBloom) * auraMask;
+            col += aurAqua * ribbon2 * (0.19 + 0.12 * uInfBloom) * auraMask;
+            col += aurGold * (ribbon1 * ribbon2) * (0.10 + 0.16 * uInfBloom) * auraMask;
+
+            // Diagonal gallery moonlight spotlight mist softly illuminating flower silhouette
+            float beamProj = p.x * 0.62 + p.y * 0.78;
+            float airBeam = exp(-beamProj * beamProj * 4.8) * (0.055 + 0.045 * uReveal) * (1.0 - 0.42 * uDecay);
+            col += vec3(0.42, 0.31, 0.58) * airBeam;
+
+            // 3. Soft sculpture floor pedestal halo beneath stem base
+            vec2 pedDelta = (vUv - vec2(0.5 + uPan.x * 0.022, 0.145 + uPan.y * 0.015)) * vec2(uAspect * 0.54, 2.35);
+            float pedHalo = exp(-dot(pedDelta, pedDelta) * 4.2);
+            float pedCore = exp(-dot(pedDelta, pedDelta) * 16.0);
+            col += (vec3(0.36, 0.26, 0.56) * pedHalo + vec3(0.58, 0.44, 0.78) * pedCore * 0.55) * (0.14 + 0.20 * uReveal) * (1.0 - 0.78 * uInfTravel);
+
+            // 4. Infinite Flower sanctuary corona, rotating cathedral rays & shockwave ripple
+            vec2 dH = p - heart;
+            float rH = length(dH);
+            if (uInfBloom > 0.005) {
+              float infPow = smoothstep(0.0, 0.88, uInfBloom);
+              float coreHalo = exp(-rH * 2.5) * (0.24 + 0.08 * uHeartBeat);
+              float midNeb = exp(-rH * 1.32) * (0.15 + 0.11 * n2);
+              float ang = atan(dH.y, dH.x) + uTime * 0.042;
+              float rays = pow(max(0.0, cos(ang * 6.0) * 0.5 + 0.5), 4.0) * 0.65
+                         + pow(max(0.0, cos(ang * 3.0 - uTime * 0.07) * 0.5 + 0.5), 6.0) * 0.35;
+              float rayAtten = exp(-rH * 1.45) * (1.0 - exp(-rH * 7.5));
+              col += mix(vec3(0.58, 0.26, 0.62), vec3(0.95, 0.66, 0.78), exp(-rH * 2.4)) * coreHalo * infPow;
+              col += vec3(0.24, 0.50, 0.80) * midNeb * infPow;
+              col += mix(vec3(0.92, 0.68, 0.54), vec3(0.68, 0.44, 0.92), n1) * rays * rayAtten * 0.18 * infPow;
+            }
+
+            // Tap / dive luminous atmospheric shockwave ring
+            if (uInfShock > 0.002) {
+              vec2 shP = p - (uShockOrigin - 0.5) * vec2(uAspect, 1.0);
+              float shR = length(shP);
+              float ringPos = (1.0 - uInfShock) * 0.85;
+              float ring = exp(-pow((shR - ringPos) * 22.0, 2.0)) * uInfShock;
+              col += mix(vec3(0.98, 0.74, 0.90), vec3(0.56, 0.88, 1.0), n1) * ring * 0.36;
+            }
+
+            // 5. Distant shooting star wisps & subtle pointer twilight lantern glow
+            float m1 = meteorStreak(p, uTime, 0.18);
+            float m2 = meteorStreak(p * vec2(-1.0, 1.0), uTime, 0.63);
+            col += vec3(0.94, 0.86, 1.0) * (m1 + m2) * 0.55 * uReveal;
+
+            vec2 ptrD = p - (uPointerUv - 0.5) * vec2(uAspect, 1.0);
+            col += vec3(0.30, 0.20, 0.45) * exp(-dot(ptrD, ptrD) * 6.5) * uPointerGlow * 0.16;
+
+            // 6. Gallery edge vignette & triangular dither (prevents OLED banding)
+            float vig = 1.0 - smoothstep(0.42, 1.12, length(vUv - 0.5) * 1.42);
+            col *= mix(0.68, 1.0, vig);
+            float dither = (hash21(gl_FragCoord.xy + fract(uTime) * 19.0) + hash21(gl_FragCoord.xy * 1.37 - fract(uTime) * 7.0) - 1.0) / 255.0;
+            gl_FragColor = vec4(max(col + dither, 0.0), 1.0);
+          }
+        `
+      })
+    );
+    bgQuad.renderOrder = -1000;
+    bgQuad.frustumCulled = false;
+    scene.add(bgQuad);
+
+    function resize() {
+      const vp = getViewportSize();
+      W = vp.w;
+      H = vp.h;
+      const baseCap = isMobileViewport() ? 1.5 : 2;
+      DPR = Math.max(1, Math.min(devicePixelRatio || 1, baseCap) * dprScale);
+      renderer.setPixelRatio(DPR);
+      renderer.setSize(W, H, false);
+      const pRatio = Math.min(DPR, 1.75);
+      const sScale = getScreenScale();
+      if (particleUniforms) particleUniforms.uPixelRatio.value = pRatio;
+      if (dustUniforms) dustUniforms.uPixelRatio.value = pRatio;
+      if (pollenUniforms) pollenUniforms.uPixelRatio.value = pRatio;
+      if (sparkUniforms) {
+        sparkUniforms.uPixelRatio.value = pRatio;
+        sparkUniforms.uScreenScale.value = sScale;
+      }
+      if (beadUniforms) beadUniforms.uPixelRatio.value = pRatio;
+      if (stamenPearlUniforms) {
+        stamenPearlUniforms.uPixelRatio.value = pRatio;
+        stamenPearlUniforms.uScreenScale.value = sScale;
+      }
+      if (budAntherMat) budAntherMat.uniforms.uPixelRatio.value = pRatio;
+      if (ambientUniforms) {
+        ambientUniforms.uPixelRatio.value = pRatio;
+        ambientUniforms.uScreenScale.value = sScale;
+        ambientUniforms.uAspect.value = W / H;
+      }
+      bgUniforms.uAspect.value = W / H;
+      cam.aspect = W / H;
+      const portrait = H > W;
+      // Frame entire sculpture comfortably above bottom dock and below header
+      baseCamPos.set(0, portrait ? 2.55 : 2.35, Math.max(portrait ? 13.8 : 11.4, 6.4 / cam.aspect));
+      cam.updateProjectionMatrix();
+    }
+    addEventListener('resize', resize);
+    addEventListener('orientationchange', () => setTimeout(resize, 120));
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
+    resize();
+
+    // ============================================================================
+    // MATH, EASING & DELTA-TIME UTILITIES
+    // ============================================================================
+    const TAU = Math.PI * 2;
+    const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const damp = (current, target, lambda, dt) => THREE.MathUtils.damp(current, target, lambda, dt);
+    function smoothDamp(current, target, velObj, smoothTime, dt) {
+      if (dt <= 0) return current;
+      smoothTime = Math.max(0.0001, smoothTime);
+      const omega = 2 / smoothTime;
+      const x = omega * dt;
+      const exp = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+      const change = current - target;
+      const temp = (velObj.v + omega * change) * dt;
+      velObj.v = (velObj.v - omega * temp) * exp;
+      let out = target + (change + temp) * exp;
+      if ((target - current > 0) === (out > target)) {
+        out = target;
+        velObj.v = 0;
+      }
+      return out;
+    }
+    const smoothstep = (a, b, x) => {
+      const t = clamp((x - a) / (b - a));
+      return t * t * (3 - 2 * t);
+    };
+    const smootherstep = (a, b, x) => {
+      const t = clamp((x - a) / (b - a));
+      return t * t * t * (t * (t * 6 - 15) + 10);
+    };
+    const easeInOutCubic = x => {
+      x = clamp(x);
+      return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) * 0.5;
+    };
+
+    let sd = 11;
+    const rnd = () => {
+      sd = (sd * 16807) % 2147483647;
+      return sd / 2147483647;
+    };
+
+    // ============================================================================
+    // PROCEDURAL TEXTURES & MATCAPS (ORIGINAL LAVENDER / PEARL / CYAN IDENTITY)
+    // ============================================================================
+    function tex(draw, n = 128) {
+      const k = document.createElement('canvas');
+      k.width = k.height = n;
+      draw(k.getContext('2d'), n);
+      return new THREE.CanvasTexture(k);
+    }
+
+    const auraTex = tex(x => {
+      const g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
+      g.addColorStop(0, 'rgba(255,244,252,0.9)');
+      g.addColorStop(0.28, 'rgba(244,195,230,0.45)');
+      g.addColorStop(0.6, 'rgba(176,162,240,0.14)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g;
+      x.fillRect(0, 0, 128, 128);
+    }, 128);
+    auraTex.encoding = THREE.sRGBEncoding;
+
+    const starFlareTex = tex(x => {
+      const c = 64;
+      const g = x.createRadialGradient(c, c, 0, c, c, c);
+      g.addColorStop(0, 'rgba(255,250,240,0.95)');
+      g.addColorStop(0.18, 'rgba(255,214,238,0.48)');
+      g.addColorStop(0.5, 'rgba(198,166,255,0.12)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = g;
+      x.fillRect(0, 0, 128, 128);
+      for (let r = 0; r < 2; r++) {
+        x.save();
+        x.translate(c, c);
+        x.rotate(r * Math.PI * 0.5);
+        const ray = x.createLinearGradient(-c, 0, c, 0);
+        ray.addColorStop(0, 'rgba(255,255,255,0)');
+        ray.addColorStop(0.35, 'rgba(255,232,248,0.22)');
+        ray.addColorStop(0.5, 'rgba(255,255,255,0.92)');
+        ray.addColorStop(0.65, 'rgba(255,232,248,0.22)');
+        ray.addColorStop(1, 'rgba(255,255,255,0)');
+        x.fillStyle = ray;
+        x.beginPath();
+        x.ellipse(0, 0, c * 0.96, 2.8, 0, 0, TAU);
+        x.fill();
+        x.restore();
+      }
+    }, 128);
+    starFlareTex.encoding = THREE.sRGBEncoding;
+
+    function grid(nu, nv, pos, col, uv) {
+      const idx = [];
+      for (let j = 0; j < nv; j++) {
+        for (let i = 0; i < nu; i++) {
+          const a = j * (nu + 1) + i, b = a + nu + 1;
+          idx.push(a, b, a + 1, b, b + 1, a + 1);
+        }
+      }
+      if (!uv) {
+        uv = new Float32Array((nu + 1) * (nv + 1) * 2);
+        let p = 0;
+        for (let j = 0; j <= nv; j++) {
+          const v = j / nv;
+          for (let i = 0; i <= nu; i++) {
+            uv[p++] = i / nu;
+            uv[p++] = v;
+          }
+        }
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+      g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+      g.setIndex(idx);
+      g.computeVertexNormals();
+      return g;
+    }
+
+    // Per-pixel 512x512 velvet-satin BRDF MatCap synthesis (zero flat gradient rings)
+    function matcap(pal, specPow = 24, velvetPow = 2.0, sheenStr = 0.22) {
+      const size = 512;
+      const k = document.createElement('canvas');
+      k.width = k.height = size;
+      const ctx = k.getContext('2d');
+      const img = ctx.createImageData(size, size);
+      const px = img.data;
+      const invHalf = 1 / (size * 0.5);
+
+      // Normalized light & view directions in camera space
+      const lx = -0.44, ly = 0.54, lz = 0.717;
+      const hx = lx, hy = ly, hz = lz + 1.0;
+      const hLen = Math.hypot(hx, hy, hz);
+      const hnx = hx / hLen, hny = hy / hLen, hnz = hz / hLen;
+
+      const rx = 0.72, ry = -0.36, rz = 0.59;
+      const bx = -0.64, by = -0.52, bz = 0.56;
+
+      for (let y = 0; y < size; y++) {
+        const ny = -(y * invHalf - 1.0);
+        for (let x = 0; x < size; x++) {
+          const nx = x * invHalf - 1.0;
+          const r2 = nx * nx + ny * ny;
+          const off = (y * size + x) * 4;
+          if (r2 >= 1.0) {
+            // Extend boundary edge cleanly by clamped unit normal to prevent bilinear seam
+            const invR = 1 / Math.sqrt(r2);
+            const ex = nx * invR, ey = ny * invR;
+            const dWrap = clamp((ex * lx + ey * ly) * 0.5 + 0.45);
+            const rB = Math.max(0, ex * rx + ey * ry);
+            const bB = Math.max(0, ex * bx + ey * by);
+            const vel = sheenStr * 1.15;
+            px[off] = Math.min(255, pal.c0[0] * (1 - dWrap) + pal.c1[0] * dWrap + pal.rimA[0] * rB + pal.rimB[0] * bB + pal.sheen[0] * vel);
+            px[off + 1] = Math.min(255, pal.c0[1] * (1 - dWrap) + pal.c1[1] * dWrap + pal.rimA[1] * rB + pal.rimB[1] * bB + pal.sheen[1] * vel);
+            px[off + 2] = Math.min(255, pal.c0[2] * (1 - dWrap) + pal.c1[2] * dWrap + pal.rimA[2] * rB + pal.rimB[2] * bB + pal.sheen[2] * vel);
+            px[off + 3] = 255;
+            continue;
+          }
+          const nz = Math.sqrt(1.0 - r2);
+          const ndl = nx * lx + ny * ly + nz * lz;
+          const wrap = clamp(ndl * 0.54 + 0.48);
+          const wrapSmooth = wrap * wrap * (3.0 - 2.0 * wrap);
+          const midBand = Math.pow(wrapSmooth, 1.85);
+          const hiBand = Math.pow(clamp(ndl), 2.2);
+
+          // Triple-stop botanical shadow -> midtone -> luminous peak
+          let r = lerp(pal.c0[0], pal.c1[0], wrapSmooth);
+          let g = lerp(pal.c0[1], pal.c1[1], wrapSmooth);
+          let b = lerp(pal.c0[2], pal.c1[2], wrapSmooth);
+
+          r = lerp(r, pal.c2[0], midBand * 0.72 + hiBand * 0.28);
+          g = lerp(g, pal.c2[1], midBand * 0.72 + hiBand * 0.28);
+          b = lerp(b, pal.c2[2], midBand * 0.72 + hiBand * 0.28);
+
+          // Satin specular & floral epidermal velvet micro-sheen with soft filmic rolloff
+          const spec = Math.pow(Math.max(0, nx * hnx + ny * hny + nz * hnz), specPow) * 0.24;
+          const velvet = Math.pow(1.0 - nz, velvetPow) * sheenStr;
+          const bounceA = Math.pow(Math.max(0, nx * rx + ny * ry + nz * rz), 1.85) * 0.26;
+          const bounceB = Math.pow(Math.max(0, nx * bx + ny * by + nz * bz), 1.85) * 0.22;
+
+          r += pal.spec[0] * spec + pal.sheen[0] * velvet + pal.rimA[0] * bounceA + pal.rimB[0] * bounceB;
+          g += pal.spec[1] * spec + pal.sheen[1] * velvet + pal.rimA[1] * bounceA + pal.rimB[1] * bounceB;
+          b += pal.spec[2] * spec + pal.sheen[2] * velvet + pal.rimA[2] * bounceA + pal.rimB[2] * bounceB;
+
+          const tone = v => 255.0 * (v / (v + 150.0)) * 1.56;
+          const d = (((x * 73856093 ^ y * 19349663) & 255) / 255 - 0.5) * 1.4;
+          px[off] = clamp(tone(r) + d, 0, 255);
+          px[off + 1] = clamp(tone(g) + d, 0, 255);
+          px[off + 2] = clamp(tone(b) + d, 0, 255);
+          px[off + 3] = 255;
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+      const t = new THREE.CanvasTexture(k);
+      t.encoding = THREE.sRGBEncoding;
+      return t;
+    }
+
+    const mcPearl = matcap({
+      c0: [34, 12, 52],       // deep velvet plum-rose crevice shadow
+      c1: [134, 72, 126],     // rich antique orchid-rose body
+      c2: [226, 186, 212],    // luminous silk pearl blush crown
+      spec: [255, 236, 246],
+      sheen: [232, 186, 228],
+      rimA: [108, 186, 226],  // moonlit cyan fill
+      rimB: [230, 134, 190]   // rose-quartz back scatter
+    }, 26, 2.0, 0.14);
+
+    const mcLeaf = matcap({
+      c0: [16, 36, 44],       // deep botanical spruce shadow
+      c1: [62, 118, 114],     // velvet sage botanical body
+      c2: [180, 220, 214],    // soft dew-kissed sheen
+      spec: [224, 250, 244],
+      sheen: [164, 210, 212],
+      rimA: [112, 204, 198],
+      rimB: [192, 152, 208]
+    }, 28, 2.05, 0.14);
+
+    const mcStem = matcap({
+      c0: [24, 16, 34],       // dark bronze-plum bark
+      c1: [94, 76, 110],      // smooth silk bark midtone
+      c2: [198, 184, 212],    // moonlight bark rim
+      spec: [232, 222, 244],
+      sheen: [182, 156, 206],
+      rimA: [112, 178, 198],
+      rimB: [196, 140, 184]
+    }, 18, 2.2, 0.12);
+
+    // ============================================================================
+    // MATCAP + BOTANICAL VENATION, SUBSURFACE GLOW & EMBER DISSOLVE SHADER
+    // ============================================================================
+    const U = {
+      t: { value: 0 },
+      breezeX: { value: 0 },
+      breezeZ: { value: 0 },
+      swayAmp: { value: 1 },
+      heartGlow: { value: 0 },
+      heartWorld: { value: new THREE.Vector3(0, 2.0, 0) },
+      view: { value: cam.matrixWorldInverse }
+    };
+
+    // bioMode: 0=stem/core, 1=rose petal (veins + nectar scatter + ember dissolve), 2=leaf/sepal, 3=butterfly wing
+    function mat(map, vc, color, withSway = true, transparent = false, rimStrength = 0.14, innerGlow = 0.24, bioMode = 0) {
+      const m = new THREE.MeshMatcapMaterial({
+        matcap: map,
+        vertexColors: !!vc,
+        side: THREE.DoubleSide,
+        color: color || 0xffffff,
+        transparent,
+        opacity: 1
+      });
+      m.userData.uPetalDecay = { value: 0 };
+      m.onBeforeCompile = s => {
+        s.uniforms.uT = U.t;
+        s.uniforms.uBreezeX = U.breezeX;
+        s.uniforms.uBreezeZ = U.breezeZ;
+        s.uniforms.uSwayAmp = U.swayAmp;
+        s.uniforms.uHeartGlow = U.heartGlow;
+        s.uniforms.uHeartWorld = U.heartWorld;
+        s.uniforms.uView = U.view;
+        s.uniforms.uRimStrength = { value: rimStrength };
+        s.uniforms.uInnerGlow = { value: innerGlow };
+        s.uniforms.uPetalDecay = m.userData.uPetalDecay;
+
+        s.vertexShader =
+          'uniform float uT;uniform float uBreezeX;uniform float uBreezeZ;uniform float uSwayAmp;uniform mat4 uView;\n' +
+          'varying vec3 vWorldPosCustom;\n' +
+          'varying vec2 vBioUv;\n' +
+          s.vertexShader
+            .replace(
+              '#include <begin_vertex>',
+              'vBioUv=uv;\n#include <begin_vertex>'
+            )
+            .replace(
+              '#include <project_vertex>',
+              (withSway
+                ? 'vec4 wp=modelMatrix*vec4(transformed,1.0);' +
+                'float hh=max(wp.y+2.6,0.0);' +
+                'float hNorm=hh*0.21;' +
+                'float bend=hNorm*hNorm;' +
+                'wp.x+=(uBreezeX+sin(uT*0.36+wp.y*0.4)*0.04)*bend*uSwayAmp;' +
+                'wp.z+=(uBreezeZ+cos(uT*0.29+wp.y*0.35)*0.028)*bend*uSwayAmp;' +
+                'vWorldPosCustom=wp.xyz;' +
+                'vec4 mvPosition=uView*wp;gl_Position=projectionMatrix*mvPosition;'
+                : 'vec4 wp=modelMatrix*vec4(transformed,1.0);vWorldPosCustom=wp.xyz;' +
+                'vec4 mvPosition=modelViewMatrix*vec4(transformed,1.0);gl_Position=projectionMatrix*mvPosition;')
+            );
+
+        let bioFragCode = '';
+        if (bioMode === 1) {
+          bioFragCode =
+            'float pu=(vBioUv.x-0.5)*2.0;float pv=vBioUv.y;' +
+            'float fanA=atan(pu,pv+0.26);' +
+            'float pVein=pow(0.5+0.5*sin(fanA*24.0+sin(pv*7.0)*0.6),4.0)*0.052*smoothstep(0.05,0.45,pv)*(1.0-smoothstep(0.85,1.0,pv));' +
+            'float throatDepth=smoothstep(0.66,0.0,pv);' +
+            'float foldContrast=mix(0.94,1.05,smoothstep(0.32,0.95,pv));' +
+            'outgoingLight*=mix(vec3(1.0),vec3(0.70,0.42,0.64),throatDepth*0.60)*foldContrast*(0.98+pVein*0.52);' +
+            'float sssEdge=smoothstep(0.50,0.98,pv)*smoothstep(0.08,0.65,1.0-ndv);' +
+            'outgoingLight+=vec3(0.96,0.60,0.80)*sssEdge*0.16;' +
+            'if(uPetalDecay>0.01){' +
+            '  float f1=sin(pu*3.1+pv*2.4)*0.5+0.5;' +
+            '  float f2=cos(pu*6.7-pv*5.3+1.4)*0.5+0.5;' +
+            '  float f3=sin(pu*12.3+pv*10.7-0.8)*0.5+0.5;' +
+            '  float org=f1*0.52+f2*0.32+f3*0.16;' +
+            '  float monoBase=(1.0-pv)*0.72+(1.0-abs(pu))*0.28;' +
+            '  float val=monoBase+(org-0.5)*0.22;' +
+            '  float thresh=uPetalDecay*1.12-0.08;' +
+            '  float mask=smoothstep(thresh-0.14,thresh+0.05,val);' +
+            '  if(mask<0.02)discard;' +
+            '  float ember=exp(-pow((val-thresh)*18.0,2.0))*smoothstep(0.02,0.16,uPetalDecay)*(1.0-smoothstep(0.78,1.0,uPetalDecay));' +
+            '  outgoingLight+=vec3(1.0,0.74,0.88)*ember*0.85;' +
+            '  diffuseColor.a*=mask;' +
+            '}';
+        } else if (bioMode === 2) {
+          bioFragCode =
+            'float lu=(vBioUv.x-0.5)*2.0;float lv=vBioUv.y;' +
+            'float midrib=exp(-pow(lu*13.0,2.0))*0.22;' +
+            'float latVein=pow(max(0.0,cos((abs(lu)*6.2-lv*8.5)*3.14159)),8.0)*smoothstep(0.08,0.85,lv)*0.08;' +
+            'float tipBlush=smoothstep(0.66,1.0,lv);' +
+            'outgoingLight=mix(outgoingLight,outgoingLight*vec3(1.16,0.98,1.22),tipBlush*0.32)+vec3(0.45,0.84,0.82)*(midrib+latVein)*0.20;';
+        } else if (bioMode === 3) {
+          bioFragCode =
+            'float wingR=clamp(length(vBioUv)*2.1,0.0,1.0);' +
+            'float cell=pow(0.5+0.5*sin(vBioUv.x*32.0+vBioUv.y*18.0),4.0)*0.16;' +
+            'float scaleIrid=0.5+0.5*sin(wingR*8.0+uT*2.2);' +
+            'vec3 shimmer=mix(vec3(0.70,0.92,1.0),vec3(1.0,0.76,0.94),scaleIrid);' +
+            'outgoingLight=outgoingLight*(1.08-cell*0.42)+shimmer*(0.30*pow(1.0-ndv,1.35)+0.22*smoothstep(0.45,1.0,wingR));';
+        } else if (bioMode === 4) {
+          bioFragCode =
+            'float rootFade=smoothstep(-2.60,-2.16,vWorldPosCustom.y);' +
+            'outgoingLight+=vec3(0.76,0.62,0.96)*(1.0-rootFade)*0.32;' +
+            'diffuseColor.a*=rootFade;';
+        }
+
+        s.fragmentShader =
+          'uniform float uT;uniform float uHeartGlow;uniform vec3 uHeartWorld;uniform float uRimStrength;uniform float uInnerGlow;uniform float uPetalDecay;\n' +
+          'varying vec3 vWorldPosCustom;\n' +
+          'varying vec2 vBioUv;\n' +
+          s.fragmentShader
+            .replace(
+              '#include <normal_fragment_begin>',
+              'vec3 normal=normalize(vNormal);' +
+              'float smoothFace=dot(normal,normalize(vViewPosition))>=0.0?1.0:-1.0;' +
+              'normal=normal*smoothFace;' +
+              'vec3 geometryNormal=normal;'
+            )
+            .replace(
+              'gl_FragColor = vec4( outgoingLight, diffuseColor.a );',
+              'vec3 vDir=normalize(vViewPosition);' +
+              'vec3 nDir=normalize(normal);' +
+              'float ndv=abs(dot(nDir,vDir));' +
+              'float fres=pow(1.0-ndv,2.8)*smoothstep(0.03,0.26,ndv);' +
+              'float irid=0.5+0.5*sin(ndv*5.2+uT*0.35+vWorldPosCustom.y*1.15);' +
+              'vec3 rimCol=mix(vec3(0.99,0.78,0.91),vec3(0.72,0.91,1.0),irid);' +
+              'float distH=length(vWorldPosCustom-uHeartWorld);' +
+              'float hGlow=exp(-distH*1.75)*uHeartGlow*uInnerGlow;' +
+              'outgoingLight+=rimCol*fres*uRimStrength+vec3(1.0,0.76,0.88)*hGlow;' +
+              bioFragCode +
+              'gl_FragColor = vec4( outgoingLight, diffuseColor.a );'
+            );
+      };
+      m.customProgramCacheKey = () => `etherbloom-matcap-v4-${withSway ? 1 : 0}-${rimStrength}-${innerGlow}-${bioMode}`;
+      return m;
+    }
+
+    const woodMat = mat(mcStem, false, 0xd8cce2, true, true, 0.08, 0.04, 4);
+    const petalBaseMat = mat(mcPearl, true, 0xffffff, true, true, 0.16, 0.28, 1);
+    const leafMat = mat(mcLeaf, true, 0xffffff, true, true, 0.11, 0.07, 2);
+    const calyxMat = mat(mcLeaf, true, 0xe8faf5, true, true, 0.11, 0.12, 0);
+    const coreMat = mat(mcPearl, false, 0xffdced, true, true, 0.16, 0.58, 0);
+
+    // ============================================================================
+    // PROCEDURAL COUTURE ROSE, STEM, STIPULES, DEWDROPS & PETAL GEOMETRY
+    // ============================================================================
+    const plant = new THREE.Group();
+    scene.add(plant);
+
+    function tube(curve, N, radial, rf) {
+      const fr = curve.computeFrenetFrames(N, false), pos = [], nor = [], uv = [], idx = [];
+      for (let i = 0; i <= N; i++) {
+        const uLen = i / N;
+        const p = curve.getPointAt(uLen), r = rf(uLen), n = fr.normals[i], b = fr.binormals[i];
+        for (let j = 0; j <= radial; j++) {
+          const a = (j / radial) * TAU, c = Math.cos(a), s = Math.sin(a);
+          const x = n.x * c + b.x * s, y = n.y * c + b.y * s, z = n.z * c + b.z * s;
+          pos.push(p.x + x * r, p.y + y * r, p.z + z * r);
+          nor.push(x, y, z);
+          uv.push(j / radial, uLen);
+        }
+      }
+      for (let i = 0; i < N; i++) {
+        for (let j = 0; j < radial; j++) {
+          const a = i * (radial + 1) + j, b = a + radial + 1;
+          idx.push(a, b, a + 1, b, b + 1, a + 1);
+        }
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+      g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+      g.setIndex(idx);
+      g.userData = { N, seg: radial * 6 };
+      return g;
+    }
+
+    function branch(pts, r0, r1, step, th0) {
+      const curve = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(...p))), N = 200;
+      const mesh = new THREE.Mesh(tube(curve, N, 12, u => lerp(r0, r1, Math.pow(u, 0.58))), woodMat);
+      mesh.frustumCulled = false;
+      plant.add(mesh);
+      const fr = curve.computeFrenetFrames(100, false), thorns = [];
+      const upVec = new THREE.Vector3(0, 1, 0);
+      for (let i = 5; i < 94; i += step) {
+        const u = i / 100, p = curve.getPointAt(u), t = curve.getTangentAt(u), a = i * 1.9;
+        const n = fr.normals[i].clone().multiplyScalar(Math.cos(a)).addScaledVector(fr.binormals[i], Math.sin(a));
+        const h = th0 * (0.95 + rnd() * 0.65), th = new THREE.Mesh(new THREE.ConeGeometry(0.019, h, 8), woodMat);
+        th.position.copy(p).addScaledVector(n, lerp(r0, r1, Math.pow(u, 0.58)) * 0.82);
+        th.quaternion.setFromUnitVectors(upVec, n.clone().multiplyScalar(0.85).addScaledVector(t, 0.45).normalize());
+        th.translateY(h * 0.35);
+        plant.add(th);
+        thorns.push({ th, u });
+      }
+      return { curve, mesh, thorns };
+    }
+
+    function updateStemGrowth(b, p) {
+      const g = b.mesh.geometry.userData;
+      b.mesh.geometry.setDrawRange(0, Math.floor(clamp(p) * g.N) * g.seg);
+      for (let i = 0; i < b.thorns.length; i++) {
+        const o = b.thorns[i];
+        const s = smootherstep(o.u + 0.02, o.u + 0.11, p);
+        o.th.visible = s > 0.005;
+        o.th.scale.setScalar(Math.max(s, 0.001));
+      }
+    }
+
+    function Pf(e) {
+      e = clamp(e);
+      return (0.2 + 0.9 * Math.pow(Math.sin(Math.PI * (0.08 + 0.84 * Math.pow(e, 0.8))), 0.7)) * (0.55 + 0.45 * smoothstep(0, 0.35, e));
+    }
+
+    function buildHead(N) {
+      const petals = [], g = new THREE.Group();
+      // 32x28 couture botanical mesh keeps curved cordate petal rims velvety smooth
+      const nu = 32, nv = 28;
+      for (let i = 0; i < N; i++) {
+        const k = i / (N - 1), col = [], tone = 0.96 + rnd() * 0.04;
+        // Richer rose-carmine warm heart transitioning into luminous porcelain-lavender tips
+        const heartMix = 0.32 + 0.68 * k;
+        for (let j = 0; j <= nv; j++) {
+          const v = j / nv;
+          for (let q = 0; q <= nu; q++) {
+            const u = (q / nu) * 2 - 1, au = Math.abs(u);
+            const satin = 0.76 + 0.24 * Math.sin(v * Math.PI * 0.92) * (0.76 + 0.24 * Math.cos(u * Math.PI * 0.65));
+            const edge = 1 - 0.12 * Math.pow(au, 4.2) * (1 - v * 0.22);
+            const vein = 0.985 + 0.015 * Math.exp(-Math.pow(u / 0.10, 2)) * Math.sin(v * Math.PI);
+            const baseWarm = (1 - smoothstep(0.0, 0.76, v)) * heartMix;
+            const tipBlush = smoothstep(0.74, 1.0, v) * (1 - k * 0.45);
+            const f = satin * edge * vein * tone;
+            const rCol = f * lerp(1.00, 1.07, baseWarm) + 0.025 * tipBlush;
+            const gCol = f * lerp(0.93, 0.75, baseWarm) + 0.010 * tipBlush;
+            const bCol = f * lerp(0.98, 0.86, baseWarm) + 0.022 * Math.sin(v * Math.PI) * (1 - k * 0.4);
+            col.push(rCol, gCol, bCol);
+          }
+        }
+        const y0 = (1 - k) * 0.24 + 0.04;
+        const top = 1.92 - 0.66 * Math.pow(k, 1.18) + (rnd() - 0.5) * 0.11 * k;
+        const angle = i * 2.399963 + (rnd() - 0.5) * 0.20;
+        const L = top - y0;
+        const al = Math.max(lerp(3.22, 0.64, Math.pow(k, 0.46)), 0.64) * (0.94 + rnd() * 0.09);
+        const rimAmt = Math.max(0, k - 0.16) * 1.46 + rnd() * 0.16;
+
+        const rowPf = new Float32Array(nv + 1);
+        const rowWp = new Float32Array(nv + 1);
+        const rowSinV = new Float32Array(nv + 1);
+        const rowRim = new Float32Array(nv + 1);
+        const rowEdgeMask = new Float32Array(nv + 1);
+        const rowY = new Float32Array(nv + 1);
+        const rowArch = new Float32Array(nv + 1);
+        const rowCrownEnv = new Float32Array(nv + 1);
+        const rowReflex = new Float32Array(nv + 1);
+        for (let j = 0; j <= nv; j++) {
+          const v = j / nv;
+          const hh = y0 + v * L;
+          // Rounded garden-rose silhouette without sharp upper-corner shelves
+          const tipTaper = 1 - 0.72 * Math.pow(smoothstep(0.48, 1.0, v), 1.42);
+          rowY[j] = hh;
+          rowPf[j] = Pf(hh / 1.9);
+          rowWp[j] = (0.54 + 0.46 * smoothstep(0, 0.42, v)) * tipTaper;
+          rowSinV[j] = Math.sin(v * Math.PI);
+          rowRim[j] = rimAmt * Math.pow(smoothstep(0.72, 1, v), 1.65) * 0.30;
+          rowEdgeMask[j] = Math.pow(smoothstep(0.68, 1.0, v), 1.6);
+          rowArch[j] = 0.088 * v * v * (0.35 + 0.65 * k);
+          rowCrownEnv[j] = Math.pow(smoothstep(0.40, 1.0, v), 1.35) * (0.58 + 0.42 * (1 - k));
+          rowReflex[j] = Math.pow(smoothstep(0.72, 1.0, v), 1.8) * 0.055 * (1 - k * 0.65);
+        }
+
+        const ph = rnd() * TAU;
+        const tilt = (rnd() - 0.5) * 0.18;
+        const colU = new Float32Array(nu + 1);
+        const colAu3 = new Float32Array(nu + 1);
+        const colCupExp = new Float32Array(nu + 1);
+        const colSinU35 = new Float32Array(nu + 1);
+        const colCosU25 = new Float32Array(nu + 1);
+        const colSinU3 = new Float32Array(nu + 1);
+        const colCrownDrop = new Float32Array(nu + 1);
+        for (let q = 0; q <= nu; q++) {
+          const u = (q / nu) * 2 - 1, au = Math.abs(u);
+          colU[q] = u;
+          colAu3[q] = au * au * au * 0.13;
+          colCupExp[q] = -0.15 * Math.exp(-au * au * 0.9);
+          colSinU35[q] = 0.013 * Math.sin(u * 3.5 + ph);
+          colCosU25[q] = 0.011 * Math.cos(u * 2.5 + ph * 0.7);
+          colSinU3[q] = 0.01 * Math.sin(u * 2.6 + ph);
+          // Graceful curved upper petal contour with subtle heirloom rose cleft
+          colCrownDrop[q] = -(u * u) * 0.145 * (0.65 + 0.35 * au) - 0.022 * Math.exp(-u * u * 26.0);
+        }
+
+        // Outer petals unfurl first, gracefully exposing inner spiral
+        const delay = (1 - k) * 0.34;
+        const outAngle = angle + (rnd() - 0.5) * 0.55;
+        const p = {
+          k, nu, nv,
+          a: angle,
+          ca: Math.cos(angle),
+          sa: Math.sin(angle),
+          y0, L, al, ph, tilt,
+          delay,
+          decayDelay: (1 - k) * 0.36,
+          detachDir: new THREE.Vector3(Math.cos(outAngle), (rnd() - 0.42) * 0.48 - 0.08 * (1 - k), Math.sin(outAngle)).normalize(),
+          detachDist: 1.45 + (1 - k) * 0.85 + rnd() * 0.65,
+          swirlSign: (i % 2 === 0 ? 1 : -1) * (0.48 + rnd() * 0.44),
+          rotTarget: new THREE.Euler((rnd() - 0.5) * 1.15, (rnd() - 0.5) * 1.4, (rnd() - 0.5) * 1.15),
+          rowPf, rowWp, rowSinV, rowRim, rowEdgeMask, rowY, rowArch, rowCrownEnv, rowReflex,
+          colU, colAu3, colCupExp, colSinU35, colCosU25, colSinU3, colCrownDrop,
+          geo: grid(nu, nv, new Array((nu + 1) * (nv + 1) * 3).fill(0), col),
+          mesh: null
+        };
+        p.geo.attributes.position.setUsage(THREE.DynamicDrawUsage);
+        const pm = petalBaseMat.clone();
+        pm.userData.uPetalDecay = { value: 0 };
+        pm.onBeforeCompile = petalBaseMat.onBeforeCompile;
+        pm.customProgramCacheKey = petalBaseMat.customProgramCacheKey;
+        pm.depthWrite = true;
+        p.mesh = new THREE.Mesh(p.geo, pm);
+        p.mesh.renderOrder = N - i;
+        p.mesh.frustumCulled = false;
+        g.add(p.mesh);
+        petals.push(p);
+      }
+      return { g, petals };
+    }
+
+    function updatePetalGeometry(p, b, breathFactor, decayCurl) {
+      const sc = (0.25 + 0.75 * p.k) * lerp(0.42, 1.0, b) * breathFactor;
+      const wrapMul = lerp(1.16, 1.0, b) * lerp(1.0, 0.86, decayCurl);
+      const pos = p.geo.attributes.position.array;
+      const ca = p.ca, sa = p.sa;
+      const {
+        nu, nv, al, tilt,
+        rowPf, rowWp, rowSinV, rowRim, rowEdgeMask, rowY, rowArch, rowCrownEnv, rowReflex,
+        colU, colAu3, colCupExp, colSinU35, colCosU25, colSinU3, colCrownDrop
+      } = p;
+
+      for (let j = 0; j <= nv; j++) {
+        const v = j / nv;
+        const v2 = v * v;
+        const hh = rowY[j];
+        const wp = rowWp[j];
+        const sinV = rowSinV[j];
+        const archOut = rowArch[j] * b - decayCurl * 0.045 * v2 + rowReflex[j] * b;
+        const rho0 = Math.max(rowPf[j] * sc + rowRim[j] * b + archOut, 0.055);
+        const yOut = hh - archOut * 0.42;
+        const edgeM = rowEdgeMask[j];
+        const crownEnv = rowCrownEnv[j];
+        const tiltV = tilt * v;
+
+        for (let q = 0; q <= nu; q++) {
+          const th = colU[q] * al * wrapMul * wp + tiltV;
+          const centerCup = colCupExp[q] * sinV * b;
+          const wav = colSinU35[q] * sinV * b;
+          const edgeWave = edgeM > 0 ? colCosU25[q] * edgeM : 0;
+          const rho = rho0 + colAu3[q] * b * v2 + wav + edgeWave;
+          const X = rho * Math.sin(th);
+          const Z = rho * Math.cos(th);
+          const idx = (j * (nu + 1) + q) * 3;
+          pos[idx] = X * ca + Z * sa;
+          pos[idx + 1] = yOut + centerCup + colSinU3[q] * v + colCrownDrop[q] * crownEnv;
+          pos[idx + 2] = -X * sa + Z * ca;
+        }
+      }
+      p.geo.attributes.position.needsUpdate = true;
+      p.geo.computeVertexNormals();
+    }
+
+    function leafGeo(L, Wd, bend, twist) {
+      // High-res 16x36 botanical leaf with fine serrations and sculpted midrib
+      const nu = 16, nv = 36, pos = [], col = [], ph = rnd() * 6;
+      for (let j = 0; j <= nv; j++) {
+        const v = j / nv;
+        const taper = Math.sin(Math.PI * Math.pow(v, 0.68));
+        const serr = 1 + 0.042 * Math.sin(v * 26 + ph) * Math.sin(v * Math.PI);
+        const w = Wd * taper * serr;
+        const yc = bend * L * v * v, zc = -0.22 * L * v * v, tw = twist * v;
+        for (let i = 0; i <= nu; i++) {
+          const u = (i / nu) * 2 - 1, au = Math.abs(u), y = u * w, z = au * w * 0.56 - Math.exp(-u * u * 30) * w * 0.07;
+          pos.push(v * L, yc + y * Math.cos(tw) - z * Math.sin(tw), zc + y * Math.sin(tw) + z * Math.cos(tw));
+          const vein = 1 - 0.14 * Math.exp(-Math.pow(u / 0.04, 2));
+          const rim = 0.84 + 0.16 * smoothstep(0.55, 1, v);
+          const f = (0.70 + 0.30 * Math.sin(v * Math.PI * 0.9)) * rim * vein;
+          col.push(f * 0.92, f * (0.99 + 0.03 * (1 - au)), f * (0.98 + 0.06 * (1 - au)));
+        }
+      }
+      return grid(nu, nv, pos, col);
+    }
+
+    function createButterfly(color) {
+      const ws = new THREE.Shape();
+      ws.moveTo(0, 0);
+      ws.bezierCurveTo(0.11, 0.30, 0.54, 0.46, 0.58, 0.21);
+      ws.bezierCurveTo(0.61, 0.03, 0.32, -0.03, 0.13, -0.03);
+      ws.bezierCurveTo(0.32, -0.07, 0.44, -0.36, 0.23, -0.38);
+      ws.bezierCurveTo(0.09, -0.35, 0.04, -0.16, 0, 0);
+      const geo = new THREE.ShapeGeometry(ws, 20), pp = geo.attributes.position, cc = [], uvs = [];
+      for (let i = 0; i < pp.count; i++) {
+        const px = pp.getX(i), py = pp.getY(i);
+        const f = 0.55 + 0.45 * Math.min(1, px / 0.38);
+        cc.push(f, f * 0.97, f * 1.03);
+        uvs.push(px, py);
+      }
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(cc, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      // Pearlescent gossamer morpho butterfly without world-space stem sway
+      const m = mat(mcPearl, true, color, false, true, 0.26, 0, 3);
+      const g = new THREE.Group(), wl = new THREE.Group(), wr = new THREE.Group();
+      const a = new THREE.Mesh(geo, m), b = new THREE.Mesh(geo, m);
+      b.scale.x = -1;
+      wl.add(a);
+      wr.add(b);
+      const bodyMat = mat(mcStem, false, 0x625078, false, true, 0.05, 0, 0);
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.011, 0.42, 8), bodyMat);
+      body.position.y = -0.1;
+      const antennaMat = new THREE.LineBasicMaterial({ color: 0xe6d4f8, transparent: true, opacity: 0.72 });
+      for (const side of [-1, 1]) {
+        const pts = [new THREE.Vector3(side * 0.012, 0.08, 0.01), new THREE.Vector3(side * 0.075, 0.22, 0.02), new THREE.Vector3(side * 0.11, 0.31, 0.01)];
+        g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), antennaMat));
+      }
+      g.add(body, wl, wr);
+      g.scale.setScalar(0.001);
+      scene.add(g);
+      return { g, wl, wr, mats: [m, bodyMat, antennaMat], flapPhase: rnd() * TAU };
+    }
+
+    const stem = branch([[0, -2.6, 0], [0.08, -1.5, 0.1], [-0.05, -0.3, -0.06], [0.02, 0.9, 0.05], [0.04, 2, 0]], 0.018, 0.072, 6, 0.1);
+
+    // Luminous genesis sprout glow at the bottom base of stem
+    const seedAura = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: auraTex,
+      color: 0xf4c6e8,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      depthWrite: false,
+      opacity: 0
+    }));
+    seedAura.position.set(0, -2.58, 0);
+    seedAura.scale.setScalar(0.85);
+    plant.add(seedAura);
+
+    // 3D Luminous Floor Sanctuary Plinth & Moonlight Ripples anchoring stem base
+    const stemPlinthUniforms = { uTime: { value: 0 }, uOpacity: { value: 0 } };
+    const stemPlinthMat = new THREE.ShaderMaterial({
+      uniforms: stemPlinthUniforms,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime; uniform float uOpacity; varying vec2 vUv;
+        void main() {
+          if (uOpacity <= 0.004) discard;
+          vec2 p = (vUv - 0.5) * 2.0;
+          float r = length(p);
+          if (r > 1.0) discard;
+          float coreMist = exp(-r * r * 4.8) * 0.24;
+          float softPool = exp(-r * r * 1.9) * 0.22;
+          float ripple1 = exp(-pow((r - fract(uTime * 0.12) * 0.88) * 14.0, 2.0)) * (1.0 - r) * 0.16;
+          float ripple2 = exp(-pow((r - fract(uTime * 0.12 + 0.5) * 0.88) * 14.0, 2.0)) * (1.0 - r) * 0.12;
+          vec3 col = mix(vec3(0.46, 0.34, 0.80), vec3(0.86, 0.66, 0.88), coreMist * 1.4);
+          col += vec3(0.56, 0.84, 0.98) * (ripple1 + ripple2) * 0.7;
+          float a = (coreMist + softPool + ripple1 + ripple2) * uOpacity * (1.0 - smoothstep(0.62, 1.0, r));
+          gl_FragColor = vec4(col, a);
+        }
+      `
+    });
+    const stemPlinth = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 3.0), stemPlinthMat);
+    stemPlinth.rotation.x = -Math.PI * 0.5;
+    stemPlinth.position.set(0, -2.59, 0);
+    stemPlinth.renderOrder = -10;
+    scene.add(stemPlinth);
+
+    // Pin every leaf strictly onto the 3D stem curve (x, y, z) with sculpted botanical petiole collar
+    const leaves = [
+      [1.6, 2.75, 0.7, 0.72, 0.19, 0.25, 0.6],
+      [1.25, 3.3, 0.3, 0.96, 0.24, -0.2, -0.5],
+      [0.85, 3.6, 0.5, 0.68, 0.19, 0.3, 0.7],
+      [0.55, 0.7, -0.5, 0.88, 0.21, -0.25, 0.5],
+      [0.2, 0.1, -0.7, 0.92, 0.19, 0.2, -0.6],
+      [1.95, 0.15, -0.9, 0.58, 0.14, 0.2, 0.4]
+    ].map((d, i) => {
+      const lm = leafMat.clone();
+      lm.onBeforeCompile = leafMat.onBeforeCompile;
+      lm.customProgramCacheKey = leafMat.customProgramCacheKey;
+      const uLeaf = clamp((d[0] + 2.6) / 4.6);
+      const stemPt = stem.curve.getPointAt(uLeaf);
+      const m = new THREE.Mesh(leafGeo(d[3], d[4], d[5], d[6]), lm);
+      m.position.copy(stemPt);
+      m.rotation.z = d[1];
+      m.rotation.y = d[2];
+      m.scale.setScalar(0.001);
+      // Small stipule collar smoothly joining petiole base to main stem
+      const stipule = new THREE.Mesh(new THREE.ConeGeometry(0.022, 0.075, 7), woodMat);
+      stipule.rotation.z = -Math.PI * 0.5;
+      stipule.position.x = 0.032;
+      m.add(stipule);
+      plant.add(m);
+      const side = Math.cos(d[1]) >= 0 ? 1 : -1;
+      const heightOrder = clamp((d[0] - 0.2) / 1.75);
+      return {
+        m, lm, uLeaf,
+        x0: stemPt.x, y0: stemPt.y, z0: stemPt.z,
+        z: d[1], y: d[2],
+        phase: 0.55 + i * 0.45,
+        fallDelay: 0.06 + heightOrder * 0.22 + rnd() * 0.08,
+        fallDrop: stemPt.y + 2.55 + rnd() * 0.45,
+        driftX: side * (0.42 + rnd() * 0.44),
+        driftZ: (rnd() - 0.5) * 0.65,
+        flutterAmp: 0.26 + rnd() * 0.18,
+        flutterFreq: 2.0 + rnd() * 1.1,
+        spinY: side * (1.2 + rnd() * 1.1),
+        droopDir: -side,
+        tiltEndX: (rnd() - 0.5) * 0.65
+      };
+    });
+
+    const head = buildHead(42);
+    plant.add(head.g);
+
+    // Sculpted receptacle cup bridging the stem top seamlessly into the sepals and petals
+    const receptaclePts = [
+      new THREE.Vector2(0.062, -0.05),
+      new THREE.Vector2(0.072, 0.0),
+      new THREE.Vector2(0.115, 0.07),
+      new THREE.Vector2(0.175, 0.15),
+      new THREE.Vector2(0.155, 0.23),
+      new THREE.Vector2(0.08, 0.27)
+    ];
+    const receptacleGeo = new THREE.LatheGeometry(receptaclePts, 20);
+    const rcPos = receptacleGeo.attributes.position;
+    const rcCol = new Float32Array(rcPos.count * 3);
+    for (let i = 0; i < rcPos.count; i++) {
+      const vy = clamp((rcPos.getY(i) + 0.05) / 0.32);
+      const shade = lerp(0.76, 1.0, vy);
+      rcCol[i * 3] = shade;
+      rcCol[i * 3 + 1] = shade * 1.02;
+      rcCol[i * 3 + 2] = shade * 0.99;
+    }
+    receptacleGeo.setAttribute('color', new THREE.BufferAttribute(rcCol, 3));
+    const receptacle = new THREE.Mesh(receptacleGeo, calyxMat);
+    head.g.add(receptacle);
+
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.125, 16, 12), coreMat);
+    core.position.y = 1.48;
+    core.scale.y = 1.38;
+    head.g.add(core);
+    const heartCenter = new THREE.Object3D();
+    heartCenter.position.set(0, 1.38, 0);
+    head.g.add(heartCenter);
+
+    // Delicate golden stamen pearls peeking softly inside the living rose crown
+    const budAntherCount = 14;
+    const budAntherPos = new Float32Array(budAntherCount * 3);
+    for (let i = 0; i < budAntherCount; i++) {
+      const a = i * 2.39996;
+      const r = 0.065 + (i / budAntherCount) * 0.085;
+      budAntherPos[i * 3] = Math.cos(a) * r;
+      budAntherPos[i * 3 + 1] = 1.56 + 0.08 * Math.sin(i * 1.7);
+      budAntherPos[i * 3 + 2] = Math.sin(a) * r;
+    }
+    const budAntherGeo = new THREE.BufferGeometry();
+    budAntherGeo.setAttribute('position', new THREE.BufferAttribute(budAntherPos, 3));
+    budAntherMat = new THREE.ShaderMaterial({
+      uniforms: { uOpacity: { value: 0 }, uTime: { value: 0 }, uPixelRatio: { value: Math.min(DPR, 1.75) } },
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: `
+        uniform float uTime; uniform float uPixelRatio; varying float vTw;
+        void main() {
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          gl_Position = projectionMatrix * mv;
+          vTw = 0.72 + 0.28 * sin(uTime * 2.1 + position.x * 18.0);
+          gl_PointSize = clamp(28.0 * uPixelRatio / max(1.0, -mv.z), 3.6, 13.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uOpacity; varying float vTw;
+        void main() {
+          vec2 q = gl_PointCoord - 0.5; float d = length(q);
+          if (d > 0.5) discard;
+          float g = exp(-d * d * 18.0);
+          gl_FragColor = vec4(1.0, 0.84, 0.52, g * vTw * uOpacity);
+        }
+      `
+    });
+    const budAnthers = new THREE.Points(budAntherGeo, budAntherMat);
+    head.g.add(budAnthers);
+
+    const heartAura = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: auraTex,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      depthWrite: false,
+      opacity: 0
+    }));
+    heartAura.position.set(0, 1.35, 0);
+    heartAura.scale.setScalar(1.95);
+    head.g.add(heartAura);
+    head.g.rotation.set(0.12, 0, 0.1);
+
+    const calyxSepals = [];
+    for (let i = 0; i < 5; i++) {
+      const sg = new THREE.Group();
+      const sc = new THREE.Mesh(leafGeo(0.72, 0.095, 0.24, 0.45), calyxMat);
+      sc.position.set(0.08, 0.08, 0);
+      sc.rotation.z = -0.25;
+      sg.rotation.y = i * 1.2566 + 0.3;
+      sg.add(sc);
+      head.g.add(sg);
+      calyxSepals.push(sc);
+    }
+
+    // Microscopic Crystal Dewdrops resting on petals & leaves (Fresnel + softbox specular shader)
+    const dewUniforms = { uOpacity: { value: 0 }, uTime: { value: 0 } };
+    const dewMat = new THREE.ShaderMaterial({
+      uniforms: dewUniforms,
+      transparent: true,
+      depthWrite: false,
+      vertexShader: `
+        varying vec3 vN; varying vec3 vV;
+        void main() {
+          vN = normalize(normalMatrix * normal);
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          vV = -mv.xyz;
+          gl_Position = projectionMatrix * mv;
+        }
+      `,
+      fragmentShader: `
+        uniform float uOpacity; uniform float uTime; varying vec3 vN; varying vec3 vV;
+        void main() {
+          if (uOpacity <= 0.01) discard;
+          vec3 n = normalize(vN), v = normalize(vV);
+          float ndv = clamp(dot(n, v), 0.0, 1.0);
+          float fres = pow(1.0 - ndv, 2.2);
+          vec3 lDir = normalize(vec3(-0.45, 0.62, 0.70));
+          vec3 hDir = normalize(lDir + v);
+          float spec1 = pow(max(0.0, dot(n, hDir)), 44.0);
+          float specPin = pow(max(0.0, dot(n, hDir)), 140.0);
+          float spec2 = pow(max(0.0, dot(n, normalize(vec3(0.55, -0.45, 0.62)))), 12.0) * 0.62;
+          vec3 baseCol = mix(vec3(0.84, 0.96, 1.0), vec3(1.0, 0.86, 0.96), 0.5 + 0.5 * n.y);
+          vec3 col = baseCol * fres * 1.05 + vec3(1.0, 0.99, 1.0) * (spec1 * 1.65 + specPin * 1.4) + vec3(0.98, 0.84, 0.96) * spec2;
+          float a = clamp((0.18 + fres * 0.78 + spec1 + spec2 * 0.65) * uOpacity, 0.0, 0.98);
+          gl_FragColor = vec4(col, a);
+        }
+      `
+    });
+    const dewGeo = new THREE.SphereGeometry(1, 14, 12);
+    const dewDrops = [
+      { kind: 'petal', pi: 4, q: 11, j: 21, scale: 0.032 },
+      { kind: 'petal', pi: 7, q: 21, j: 19, scale: 0.027 },
+      { kind: 'petal', pi: 10, q: 16, j: 23, scale: 0.030 },
+      { kind: 'petal', pi: 14, q: 9, j: 18, scale: 0.024 },
+      { kind: 'petal', pi: 18, q: 22, j: 22, scale: 0.028 },
+      { kind: 'petal', pi: 23, q: 15, j: 20, scale: 0.023 },
+      { kind: 'leaf', li: 0, pos: new THREE.Vector3(0.42, 0.045, 0.02), scale: 0.033 },
+      { kind: 'leaf', li: 1, pos: new THREE.Vector3(0.54, -0.02, -0.03), scale: 0.030 }
+    ].map(d => {
+      const m = new THREE.Mesh(dewGeo, dewMat);
+      m.scale.set(d.scale, d.scale * 0.82, d.scale);
+      m.renderOrder = 60;
+      if (d.kind === 'leaf') {
+        m.position.copy(d.pos);
+        leaves[d.li].m.add(m);
+      } else {
+        const p = head.petals[Math.min(d.pi, head.petals.length - 1)];
+        d.vIdx = (Math.min(d.j, p.nv) * (p.nu + 1) + Math.min(d.q, p.nu)) * 3;
+        head.g.add(m);
+      }
+      return { ...d, m };
+    });
+
+    const flies = [
+      { ...createButterfly(0xdec4ff), phaseOffset: 0, orbitR: 2.05, orbitY: 1.5, speed: 0.27 },
+      { ...createButterfly(0xffc6e4), phaseOffset: 3.1, orbitR: 2.35, orbitY: 2.15, speed: 0.22 }
+    ];
+
+    // ============================================================================
+    // RISING LUMINOUS HEART POLLEN / EMBERS
+    // ============================================================================
+    const POLLEN_COUNT = isMobileViewport() ? 55 : 100;
+    const pollenSeeds = new Float32Array(POLLEN_COUNT * 4);
+    for (let i = 0; i < POLLEN_COUNT; i++) {
+      pollenSeeds[i * 4] = rnd();
+      pollenSeeds[i * 4 + 1] = 0.08 + rnd() * 0.55;
+      pollenSeeds[i * 4 + 2] = 0.065 + rnd() * 0.08;
+      pollenSeeds[i * 4 + 3] = rnd() * TAU;
+    }
+    const pollenGeo = new THREE.BufferGeometry();
+    pollenGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(POLLEN_COUNT * 3), 3));
+    pollenGeo.setAttribute('aData', new THREE.BufferAttribute(pollenSeeds, 4));
+
+    pollenUniforms = {
+      uTime: { value: 0 },
+      uOrigin: { value: new THREE.Vector3(0, 2.0, 0) },
+      uVisibility: { value: 0 },
+      uPixelRatio: { value: Math.min(DPR, 1.75) }
+    };
+
+    const pollenMaterial = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: pollenUniforms,
+      vertexShader: `
+  attribute vec4 aData;
+  uniform float uTime;
+  uniform vec3 uOrigin;
+  uniform float uVisibility;
+  uniform float uPixelRatio;
+  varying float vAlpha;
+  varying float vMix;
+  void main() {
+   float life = fract(aData.x + uTime * aData.z);
+   float spiral = aData.w + life * 4.0 + uTime * 0.22;
+   float spread = aData.y * (0.45 + 1.35 * life);
+   vec3 p = uOrigin + vec3(cos(spiral) * spread, life * 3.1 - 0.15, sin(spiral) * spread);
+   vec4 mv = modelViewMatrix * vec4(p, 1.0);
+   gl_Position = projectionMatrix * mv;
+   gl_PointSize = (1.0 + 1.2 * (1.0 - life)) * 15.0 * uPixelRatio / max(1.0, -mv.z);
+   float fadeIn = smoothstep(0.0, 0.22, life);
+   float fadeOut = 1.0 - smoothstep(0.58, 1.0, life);
+   vAlpha = uVisibility * fadeIn * fadeOut * 0.65;
+   vMix = aData.x;
+  }
+ `,
+      fragmentShader: `
+  varying float vAlpha;
+  varying float vMix;
+  void main() {
+   if (vAlpha <= 0.005) discard;
+   vec2 q = gl_PointCoord - 0.5;
+   float d = length(q);
+   float soft = exp(-d * d * 12.0) * (1.0 - smoothstep(0.32, 0.5, d));
+   float a = soft * vAlpha;
+   if (a <= 0.005) discard;
+   vec3 col = mix(vec3(1.0, 0.85, 0.93), vec3(0.76, 0.92, 1.0), vMix);
+   gl_FragColor = vec4(col, a);
+  }
+ `
+    });
+    const pollenField = new THREE.Points(pollenGeo, pollenMaterial);
+    pollenField.frustumCulled = false;
+    scene.add(pollenField);
+
+    // ============================================================================
+    // COHERENT GRAVITATIONAL PARTICLE FIELD
+    // ============================================================================
+    const particleCount = isMobileViewport() ? 950 : 2300;
+    const particlePositions = new Float32Array(particleCount * 3);
+    const particleSeeds = new Float32Array(particleCount);
+    const particleSizes = new Float32Array(particleCount);
+    const particleOrbits = new Float32Array(particleCount * 3);
+
+    for (let i = 0; i < particleCount; i++) {
+      const a = rnd() * TAU;
+      const r = 3.1 + Math.pow(rnd(), 0.72) * 7.2;
+      const y = (rnd() - 0.5) * 9.5;
+      particlePositions[i * 3] = Math.cos(a) * r;
+      particlePositions[i * 3 + 1] = y;
+      particlePositions[i * 3 + 2] = Math.sin(a) * r;
+      particleSeeds[i] = rnd();
+      particleSizes[i] = 0.45 + rnd() * 1.4;
+      const speed = (0.045 + 0.045 * (3.1 / r)) * (0.85 + 0.3 * particleSeeds[i]);
+      particleOrbits[i * 3] = r;
+      particleOrbits[i * 3 + 1] = a;
+      particleOrbits[i * 3 + 2] = speed;
+    }
+
+    const particleGeometry = new THREE.BufferGeometry();
+    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    particleGeometry.setAttribute('aSeed', new THREE.BufferAttribute(particleSeeds, 1));
+    particleGeometry.setAttribute('aSize', new THREE.BufferAttribute(particleSizes, 1));
+    particleGeometry.setAttribute('aOrbit', new THREE.BufferAttribute(particleOrbits, 3));
+
+    particleUniforms = {
+      uTime: { value: 0 },
+      uPointer: { value: new THREE.Vector3(0, 0.35, 0) },
+      uPointerStrength: { value: 0 },
+      uVisibility: { value: 0 },
+      uPulse: { value: 0 },
+      uPixelRatio: { value: Math.min(DPR, 1.75) }
+    };
+
+    const particleMaterial = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: particleUniforms,
+      vertexShader: `
+  attribute float aSeed;
+  attribute float aSize;
+  attribute vec3 aOrbit;
+  uniform float uTime;
+  uniform vec3 uPointer;
+  uniform float uPointerStrength;
+  uniform float uVisibility;
+  uniform float uPulse;
+  uniform float uPixelRatio;
+  varying float vSeed;
+  varying float vAlpha;
+
+  void main() {
+   float r = aOrbit.x;
+   float theta = aOrbit.y + uTime * aOrbit.z;
+   float yBreath = sin(uTime * 0.22 + aSeed * 6.28318) * 0.18;
+   float rBreath = sin(uTime * 0.16 + aSeed * 12.566) * 0.14;
+   float rr = r + rBreath;
+
+   vec3 p = vec3(cos(theta) * rr, position.y + yBreath, sin(theta) * rr);
+
+   vec3 toCore = p - vec3(0.0, 0.45, 0.0);
+   float coreDist = max(length(toCore), 0.001);
+   p += (toCore / coreDist) * exp(-coreDist * 0.38) * 0.14;
+
+   vec3 delta = uPointer - p;
+   float pDist = length(delta);
+   float influence = exp(-pDist * 0.42) * uPointerStrength;
+   vec3 deltaDir = delta / max(pDist, 0.001);
+   vec3 tangent = normalize(cross(vec3(0.0, 1.0, 0.0), deltaDir) + vec3(0.0001));
+   p += deltaDir * influence * (0.24 + uPulse * 0.38) + tangent * influence * 0.22;
+
+   vec4 mv = modelViewMatrix * vec4(p, 1.0);
+   gl_Position = projectionMatrix * mv;
+   gl_PointSize = aSize * (1.0 + 1.15 * influence) * 18.0 * uPixelRatio / max(1.0, -mv.z);
+   vSeed = aSeed;
+   vAlpha = uVisibility * (0.22 + 0.46 * (0.5 + 0.5 * sin(uTime * 0.42 + aSeed * 20.0)));
+  }
+ `,
+      fragmentShader: `
+  varying float vSeed;
+  varying float vAlpha;
+  void main() {
+   vec2 q = gl_PointCoord - 0.5;
+   float d = length(q);
+   float alpha = (1.0 - smoothstep(0.08, 0.5, d)) * vAlpha;
+   if (alpha < 0.008) discard;
+   vec3 color = mix(vec3(0.74, 0.68, 0.94), vec3(0.68, 0.88, 0.94), 0.5 + 0.5 * sin(vSeed * 19.0));
+   gl_FragColor = vec4(color, alpha);
+  }
+ `
+    });
+
+    const particleField = new THREE.Points(particleGeometry, particleMaterial);
+    particleField.frustumCulled = false;
+    scene.add(particleField);
+
+    // ============================================================================
+    // CONTINUOUS PETAL-BOUND SPIRAL DISSOLUTION PARTICLES
+    // ============================================================================
+    const DUST_PER_PETAL = isMobileViewport() ? 18 : 24;
+    const DUST_COUNT = head.petals.length * DUST_PER_PETAL;
+    const dustPosArray = new Float32Array(DUST_COUNT * 3);
+    const dustAlphaArray = new Float32Array(DUST_COUNT);
+    const dustSizeArray = new Float32Array(DUST_COUNT);
+    const dustSeedArray = new Float32Array(DUST_COUNT);
+    const dustBindings = [];
+
+    for (let pi = 0; pi < head.petals.length; pi++) {
+      const p = head.petals[pi];
+      const vertCount = (p.nu + 1) * (p.nv + 1);
+      for (let k = 0; k < DUST_PER_PETAL; k++) {
+        const idx = pi * DUST_PER_PETAL + k;
+        const vIdx = Math.floor(((k + 0.5) / DUST_PER_PETAL) * (vertCount - 1));
+        const a = rnd() * TAU;
+        const up = 0.35 + rnd() * 0.95;
+        dustBindings.push({
+          petalIndex: pi,
+          vertexIndex: vIdx,
+          offsetX: Math.cos(a) * (0.28 + rnd() * 0.65),
+          offsetY: up * 1.15,
+          offsetZ: Math.sin(a) * (0.28 + rnd() * 0.65),
+          driftSpeed: 0.75 + rnd() * 1.25,
+          swirlSpeed: (0.45 + rnd() * 0.85) * (pi % 2 === 0 ? 1 : -0.6),
+          phase: rnd() * TAU
+        });
+        dustSizeArray[idx] = 0.95 + rnd() * 1.55;
+        dustSeedArray[idx] = rnd();
+        dustAlphaArray[idx] = 0;
+      }
+    }
+
+    const dustGeometry = new THREE.BufferGeometry();
+    const dustPosAttr = new THREE.BufferAttribute(dustPosArray, 3);
+    dustPosAttr.setUsage(THREE.DynamicDrawUsage);
+    const dustAlphaAttr = new THREE.BufferAttribute(dustAlphaArray, 1);
+    dustAlphaAttr.setUsage(THREE.DynamicDrawUsage);
+    dustGeometry.setAttribute('position', dustPosAttr);
+    dustGeometry.setAttribute('aAlpha', dustAlphaAttr);
+    dustGeometry.setAttribute('aSize', new THREE.BufferAttribute(dustSizeArray, 1));
+    dustGeometry.setAttribute('aSeed', new THREE.BufferAttribute(dustSeedArray, 1));
+
+    dustUniforms = {
+      uTime: { value: 0 },
+      uPixelRatio: { value: Math.min(DPR, 1.75) }
+    };
+
+    const dustMaterial = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: dustUniforms,
+      vertexShader: `
+  attribute float aAlpha;
+  attribute float aSize;
+  attribute float aSeed;
+  uniform float uTime;
+  uniform float uPixelRatio;
+  varying float vAlpha;
+  varying float vSeed;
+  varying float vTwinkle;
+  void main() {
+   vec4 mv = modelViewMatrix * vec4(position, 1.0);
+   gl_Position = projectionMatrix * mv;
+   float tw = 0.65 + 0.35 * sin(uTime * 3.1 + aSeed * 25.0);
+   gl_PointSize = aSize * (19.0 + 7.0 * tw) * uPixelRatio / max(1.0, -mv.z);
+   vAlpha = aAlpha;
+   vSeed = aSeed;
+   vTwinkle = tw;
+  }
+ `,
+      fragmentShader: `
+  varying float vAlpha;
+  varying float vSeed;
+  varying float vTwinkle;
+  void main() {
+   if (vAlpha <= 0.005) discard;
+   vec2 q = gl_PointCoord - 0.5;
+   float d = length(q);
+   float core = exp(-d * d * 18.0);
+   float halo = 1.0 - smoothstep(0.08, 0.5, d);
+   float a = (halo * 0.55 + core * 0.65) * vAlpha * vTwinkle;
+   if (a <= 0.005) discard;
+   vec3 cRose = vec3(1.0, 0.72, 0.88);
+   vec3 cGold = vec3(1.0, 0.84, 0.58);
+   vec3 cLilac = vec3(0.84, 0.76, 1.0);
+   vec3 col = mix(mix(cRose, cGold, fract(vSeed * 7.13)), cLilac, smoothstep(0.3, 0.9, fract(vSeed * 3.7)));
+   gl_FragColor = vec4(col, a);
+  }
+ `
+    });
+
+    const dustPoints = new THREE.Points(dustGeometry, dustMaterial);
+    dustPoints.frustumCulled = false;
+    scene.add(dustPoints);
+
+    // ============================================================================
+    // INNER UNIVERSE — INFINITE RECURSIVE JOAILLERIE CRYSTAL SANCTUARY
+    // ============================================================================
+    const innerUniverse = new THREE.Group();
+    innerUniverse.visible = false;
+    scene.add(innerUniverse);
+
+    // --- Volumetric Swirling Inner Cosmic Nebula Clouds (3D Parallax Depth) ---
+    const infNebulaMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: { value: 0 }, uOpacity: { value: 0 } },
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      vertexShader: `
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uTime;
+        uniform float uOpacity;
+        varying vec2 vUv;
+        float hash2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
+        float noise2(vec2 p) {
+          vec2 i = floor(p), f = fract(p);
+          vec2 u = f * f * (3.0 - 2.0 * f);
+          return mix(mix(hash2(i), hash2(i + vec2(1.0, 0.0)), u.x), mix(hash2(i + vec2(0.0, 1.0)), hash2(i + vec2(1.0, 1.0)), u.x), u.y);
+        }
+        void main() {
+          if (uOpacity <= 0.004) discard;
+          vec2 p = vUv - 0.5;
+          float r = length(p);
+          if (r > 0.5) discard;
+          float ang = atan(p.y, p.x);
+          vec2 sw = vec2(cos(ang - r * 3.8 + uTime * 0.14), sin(ang - r * 3.8 + uTime * 0.14)) * (r * 4.5);
+          float n = noise2(sw + uTime * 0.08) * 0.65 + noise2(sw * 2.1 - uTime * 0.12) * 0.35;
+          float radial = (1.0 - smoothstep(0.08, 0.50, r)) * smoothstep(0.04, 0.20, r);
+          vec3 cRose = vec3(0.95, 0.44, 0.78);
+          vec3 cAqua = vec3(0.32, 0.84, 1.0);
+          vec3 col = mix(cRose, cAqua, smoothstep(0.2, 0.8, n));
+          gl_FragColor = vec4(col, radial * n * uOpacity);
+        }
+      `
+    });
+    const infNebulaPlanes = [];
+    const infNebulaGeo = new THREE.PlaneGeometry(1.75, 1.75);
+    [
+      [Math.PI * 0.44, 0.2, 0.0],
+      [Math.PI * 0.52, -0.4, 0.5],
+      [0.35, 0.85, -0.35]
+    ].forEach(([rx, ry, rz]) => {
+      const m = new THREE.Mesh(infNebulaGeo, infNebulaMat);
+      m.rotation.set(rx, ry, rz);
+      m.renderOrder = 0;
+      innerUniverse.add(m);
+      infNebulaPlanes.push(m);
+    });
+
+    // --- Entrance Holographic Shockwave Aperture Ring ---
+    const shockRingMat = new THREE.ShaderMaterial({
+      uniforms: { uOpacity: { value: 0 }, uTime: { value: 0 } },
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      vertexShader: `
+        varying vec2 vPos;
+        void main() {
+          vPos = position.xy;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uOpacity; uniform float uTime; varying vec2 vPos;
+        void main() {
+          if (uOpacity <= 0.005) discard;
+          float r = length(vPos);
+          float rim = exp(-pow((r - 0.65) * 7.5, 2.0));
+          float ang = atan(vPos.y, vPos.x);
+          float sweep = 0.65 + 0.35 * sin(ang * 4.0 + uTime * 3.0);
+          vec3 col = mix(vec3(1.0, 0.82, 0.62), vec3(0.55, 0.92, 1.0), 0.5 + 0.5 * cos(ang * 2.0));
+          gl_FragColor = vec4(col, rim * sweep * uOpacity);
+        }
+      `
+    });
+    const shockRing = new THREE.Mesh(new THREE.RingGeometry(0.18, 0.96, 64, 1), shockRingMat);
+    shockRing.rotation.x = -Math.PI * 0.48;
+    innerUniverse.add(shockRing);
+
+    // --- Layer 1: 2 Alternating Couture Crystal Petal Molds (8 Recursive Logarithmic Tiers) ---
+    function createCrystalPetalGeometry(kind) {
+      const nu = 20, nv = 22;
+      const pos = [], uvs = [], idx = [];
+      const isLotus = kind === 'lotus';
+      for (let j = 0; j <= nv; j++) {
+        const v = j / nv;
+        const tipCurve = isLotus ? (1.0 - 0.36 * smoothstep(0.66, 1.0, v)) : (1.0 - 0.14 * smoothstep(0.82, 1.0, v));
+        const baseW = isLotus ? 0.24 : 0.31;
+        const flareW = isLotus ? 0.14 : 0.19;
+        const widthProfile = Math.sin(Math.PI * Math.pow(v, 0.70)) * (baseW + flareW * smoothstep(0.18, 0.85, v)) * tipCurve;
+        const yBase = v * (isLotus ? 0.84 : 0.76);
+        const spineCup = Math.sin(v * Math.PI) * (isLotus ? 0.15 : 0.13) - Math.pow(smoothstep(0.62, 1.0, v), 1.55) * 0.10;
+        for (let i = 0; i <= nu; i++) {
+          const u = (i / nu) * 2 - 1;
+          const x = u * widthProfile * (1.0 - 0.08 * v * v);
+          const sideCurl = (u * u) * (isLotus ? 0.105 : 0.088) * Math.sin(v * Math.PI * 0.88);
+          const flute = isLotus ? 0 : Math.cos(u * Math.PI * 2.5) * 0.012 * smoothstep(0.55, 1.0, v);
+          const cleftY = isLotus ? 0 : (-(u * u) * 0.05 * smoothstep(0.65, 1.0, v) - 0.018 * Math.exp(-u * u * 22.0) * smoothstep(0.78, 1.0, v));
+          const z = spineCup - sideCurl + flute;
+          pos.push(x, yBase + cleftY, z);
+          uvs.push(i / nu, v);
+        }
+      }
+      for (let j = 0; j < nv; j++) {
+        for (let i = 0; i < nu; i++) {
+          const a = j * (nu + 1) + i, b = a + nu + 1;
+          idx.push(a, b, a + 1, b, b + 1, a + 1);
+        }
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      g.setIndex(idx);
+      g.computeVertexNormals();
+      return g;
+    }
+
+    const crystalGeoLotus = createCrystalPetalGeometry('lotus');
+    const crystalGeoDamask = createCrystalPetalGeometry('damask');
+    const CRYSTAL_TIER_PALETTES = [
+      [0xffd58e, 0xff5eb8], // champagne gold -> imperial rose
+      [0xffe8fa, 0xb26eff], // pearl blush -> royal orchid
+      [0x7bf0ff, 0xd694ff], // celestial aqua -> lilac
+      [0xffa6df, 0xffd773], // rose quartz -> starlight gold
+      [0xe6dcff, 0x3ce5ff], // diamond lavender -> cyan prism
+      [0xffdfaa, 0xff5eb2], // amber pearl -> magenta rose
+      [0xc8a4ff, 0x6dffde], // violet -> aurora mint
+      [0xffb8d8, 0x76c8ff]  // rosewater -> sapphire mist
+    ];
+
+    const infiniteTierCount = 8;
+    const infiniteTiers = [];
+    const crystalPetalVert = `
+ varying vec2 vUv;
+ varying vec3 vNormalV;
+ varying vec3 vViewPos;
+ void main() {
+  vUv = uv;
+  vNormalV = normalize(normalMatrix * normal);
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vViewPos = -mv.xyz;
+  gl_Position = projectionMatrix * mv;
+ }
+`;
+    const crystalPetalFrag = `
+ uniform float uOpacity;
+ uniform float uTime;
+ uniform float uShimmer;
+ uniform float uCycle;
+ uniform vec3 uColorCore;
+ uniform vec3 uColorRim;
+ varying vec2 vUv;
+ varying vec3 vNormalV;
+ varying vec3 vViewPos;
+ void main() {
+  if (uOpacity <= 0.003) discard;
+  vec3 n = normalize(vNormalV);
+  vec3 v = normalize(vViewPos);
+  float ndv = abs(dot(n, v));
+  float rim = pow(1.0 - ndv, 2.05);
+  float dualRim = exp(-pow((rim - 0.56) * 8.5, 2.0)) * 0.28;
+  float rimEdge = smoothstep(0.58, 1.0, rim);
+  float softBody = 0.010 + 0.032 * smoothstep(0.16, 0.88, vUv.y) * (1.0 - pow(abs(vUv.x - 0.5) * 2.0, 2.5));
+  float mainVein = exp(-pow((vUv.x - 0.5) * 9.0, 2.0)) * 0.14 * sin(vUv.y * 3.14159265);
+  float filigree = pow(0.5 + 0.5 * sin((vUv.x - 0.5) * 24.0 - vUv.y * 10.0), 6.0) * 0.085 * sin(vUv.y * 3.14159265);
+  float topEdgeGlow = smoothstep(0.80, 1.0, vUv.y) * 0.28;
+  float glint = pow(max(0.0, sin(vUv.y * 14.0 - uTime * 2.3 + vUv.x * 6.28)), 9.0) * 0.16 * rim;
+
+  // Chromatic evolution across logarithmic blossom lifecycle
+  vec3 prismShift = mix(vec3(1.0, 0.84, 0.62), vec3(0.52, 0.90, 1.0), smoothstep(0.15, 0.90, uCycle));
+  vec3 baseMix = mix(uColorCore, uColorRim, clamp(vUv.y * 0.78 + rim * 0.52, 0.0, 1.0));
+  vec3 col = mix(baseMix, prismShift, 0.28 * vUv.y);
+  col += vec3(1.0, 0.94, 0.99) * (rimEdge * 0.34 + dualRim * 0.56 + glint + topEdgeGlow * 0.22);
+  col += vec3(1.0, 0.86, 0.64) * (mainVein * 0.45 + filigree * 0.65);
+
+  // Clear jewel-glass base opening + soft filmic shoulder prevents additive white-out on narrow mobile screens
+  col = col / (1.0 + col * 0.24);
+  float baseFade = smoothstep(0.16, 0.48, vUv.y);
+  float a = clamp((softBody + rim * 0.40 + mainVein + filigree + topEdgeGlow + rimEdge * 0.26) * uOpacity * uShimmer * mix(0.05, 1.0, baseFade), 0.0, 1.0);
+  gl_FragColor = vec4(col, a);
+ }
+`;
+
+    for (let tIdx = 0; tIdx < infiniteTierCount; tIdx++) {
+      const [cCore, cRim] = CRYSTAL_TIER_PALETTES[tIdx % CRYSTAL_TIER_PALETTES.length];
+      const tierUniforms = {
+        uOpacity: { value: 0 },
+        uTime: { value: 0 },
+        uShimmer: { value: 1 },
+        uCycle: { value: 0 },
+        uColorCore: { value: new THREE.Color(cCore) },
+        uColorRim: { value: new THREE.Color(cRim) }
+      };
+      const tierMat = new THREE.ShaderMaterial({
+        uniforms: tierUniforms,
+        vertexShader: crystalPetalVert,
+        fragmentShader: crystalPetalFrag,
+        transparent: true,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        blending: THREE.AdditiveBlending
+      });
+      const tierGroup = new THREE.Group();
+      const petalsPerTier = tIdx % 2 === 0 ? 8 : 10;
+      const geoMold = tIdx % 2 === 0 ? crystalGeoLotus : crystalGeoDamask;
+      const pivots = [];
+      for (let pIdx = 0; pIdx < petalsPerTier; pIdx++) {
+        const radHolder = new THREE.Group();
+        radHolder.rotation.y = (pIdx / petalsPerTier) * TAU + tIdx * (Math.PI / petalsPerTier);
+        const tiltPivot = new THREE.Group();
+        const petalMesh = new THREE.Mesh(geoMold, tierMat);
+        petalMesh.position.set(0, 0.04, 0.08);
+        tiltPivot.add(petalMesh);
+        radHolder.add(tiltPivot);
+        tierGroup.add(radHolder);
+        pivots.push(tiltPivot);
+      }
+      innerUniverse.add(tierGroup);
+      infiniteTiers.push({ group: tierGroup, pivots, uniforms: tierUniforms, offset: tIdx / infiniteTierCount, dir: tIdx % 2 === 0 ? 1 : -1 });
+    }
+
+    // --- Layer 2: Astrolabe Orbital Constellations, Light Waves & Comet-Wake Pearls ---
+    const ORBIT_COLORS = [
+      0xffd166, // starlight gold
+      0xff5eb8, // rose quartz
+      0xbe73ff, // royal orchid
+      0x3ce5ff, // celestial aqua
+      0xffa6de, // petal pink
+      0x6dffde  // aurora mint
+    ];
+    const orbitLines = [];
+    const orbitMaterials = [];
+    const orbitWaveUniforms = [];
+    const orbitSpinSpeeds = [];
+
+    beadUniforms = {
+      uTime: { value: 0 },
+      uOpacity: { value: 0 },
+      uPixelRatio: { value: Math.min(DPR, 1.75) }
+    };
+
+    const beadMaterial = new THREE.ShaderMaterial({
+      uniforms: beadUniforms,
+      vertexShader: `
+  attribute float aPhase;
+  attribute float aSpeed;
+  attribute float aRadius;
+  attribute float aHarm;
+  attribute float aRingPhase;
+  attribute float aAzOff;
+  attribute float aRingId;
+  attribute float aTrailIdx;
+  attribute vec3 aColor;
+  uniform float uTime;
+  uniform float uPixelRatio;
+  varying vec3 vColor;
+  varying float vTrailFade;
+  void main() {
+   float u = aPhase + uTime * aSpeed - aTrailIdx * 0.075 * sign(aSpeed);
+   float coil = 1.0 + 0.028 * sin(u * aHarm + aRingPhase);
+   vec3 p = vec3(
+    cos(u + aAzOff) * aRadius * coil,
+    sin(u * 2.0 + aRingId * 0.6) * 0.026 * coil,
+    sin(u + aAzOff) * aRadius * coil
+   );
+   vec4 mv = modelViewMatrix * vec4(p, 1.0);
+   gl_Position = projectionMatrix * mv;
+   float szScale = mix(1.0, 0.34, aTrailIdx / 3.0);
+   gl_PointSize = clamp(24.0 * szScale * uPixelRatio / max(0.8, -mv.z), 2.8, 28.0);
+   vColor = aColor;
+   vTrailFade = mix(1.0, 0.16, aTrailIdx / 3.0);
+  }
+ `,
+      fragmentShader: `
+  uniform float uOpacity;
+  varying vec3 vColor;
+  varying float vTrailFade;
+  void main() {
+   vec2 q = gl_PointCoord - 0.5;
+   float d = length(q);
+   if (d > 0.5) discard;
+   float core = exp(-d * d * 24.0);
+   float flareH = exp(-abs(q.y) * 20.0) * exp(-abs(q.x) * 6.5);
+   float flareV = exp(-abs(q.x) * 20.0) * exp(-abs(q.y) * 6.5);
+   float glint = (flareH + flareV) * 0.55 * vTrailFade;
+   float glow = core + (1.0 - smoothstep(0.10, 0.5, d)) * 0.34 + glint;
+   vec3 col = mix(vColor, vec3(1.0, 0.98, 1.0), clamp(core * 0.52 + glint * 0.45, 0.0, 1.0));
+   gl_FragColor = vec4(col, clamp(glow, 0.0, 1.0) * uOpacity * vTrailFade);
+  }
+ `,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+
+    for (let ring = 0; ring < 12; ring++) {
+      const radius = 0.21 + ring * 0.068;
+      const harm = 3 + (ring % 4);
+      const ringPhase = ring * 0.7;
+      const azOff = ring * 0.28;
+      const colHex = ORBIT_COLORS[ring % ORBIT_COLORS.length];
+      const colVec = new THREE.Color(colHex);
+      const dir = ring % 2 === 0 ? 1 : -1;
+
+      const pts = [];
+      for (let i = 0; i <= 180; i++) {
+        const u = (i / 180) * TAU;
+        const coil = 1 + 0.025 * Math.sin(u * harm + ringPhase);
+        pts.push(new THREE.Vector3(
+          Math.cos(u + azOff) * radius * coil,
+          Math.sin(u * 2 + ring * 0.6) * 0.022 * coil,
+          Math.sin(u + azOff) * radius * coil
+        ));
+      }
+
+      const ringMat = new THREE.LineBasicMaterial({
+        color: colHex,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+      orbitMaterials.push(ringMat);
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ringMat);
+      const tiltSign = ring % 2 === 0 ? 1 : -1;
+      const incX = tiltSign * (0.24 + 0.44 * ((ring * 0.381966) % 1));
+      const incZ = -tiltSign * (0.18 + 0.36 * (((ring + 4) * 0.618034) % 1));
+      line.rotation.set(incX, ring * 2.39996, incZ);
+
+      // Luminous traveling light-ribbon arc on signature even-indexed rings
+      if (ring % 2 === 0) {
+        const curve = new THREE.CatmullRomCurve3(pts, true);
+        const tubeGeo = new THREE.TubeGeometry(curve, 128, 0.0042 + (ring >= 8 ? 0.0018 : 0), 6, true);
+        const wUniforms = { uTime: { value: 0 }, uOpacity: { value: 0 }, uSpeed: { value: dir * (0.45 + ring * 0.04) }, uColor: { value: colVec } };
+        const wMat = new THREE.ShaderMaterial({
+          uniforms: wUniforms,
+          transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+          vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+          fragmentShader: `
+            uniform float uTime; uniform float uOpacity; uniform float uSpeed; uniform vec3 uColor; varying vec2 vUv;
+            void main() {
+              if (uOpacity <= 0.004) discard;
+              float phase = (vUv.x - uTime * uSpeed * 0.16) * 6.2831853;
+              float pulse = pow(0.5 + 0.5 * cos(phase * 2.0), 6.0);
+              float glow = 0.18 + 0.82 * pulse;
+              gl_FragColor = vec4(mix(uColor, vec3(1.0, 0.96, 1.0), pulse * 0.55), glow * uOpacity * 0.65);
+            }
+          `
+        });
+        line.add(new THREE.Mesh(tubeGeo, wMat));
+        orbitWaveUniforms.push(wUniforms);
+      }
+
+      const PEARL_COUNT = 5, TRAIL_STEPS = 4;
+      const TOTAL_BEADS = PEARL_COUNT * TRAIL_STEPS;
+      const bPos = new Float32Array(TOTAL_BEADS * 3);
+      const bPhase = new Float32Array(TOTAL_BEADS);
+      const bSpeed = new Float32Array(TOTAL_BEADS);
+      const bRadius = new Float32Array(TOTAL_BEADS);
+      const bHarm = new Float32Array(TOTAL_BEADS);
+      const bRingPhase = new Float32Array(TOTAL_BEADS);
+      const bAzOff = new Float32Array(TOTAL_BEADS);
+      const bRingId = new Float32Array(TOTAL_BEADS);
+      const bTrail = new Float32Array(TOTAL_BEADS);
+      const bCol = new Float32Array(TOTAL_BEADS * 3);
+      for (let b = 0; b < PEARL_COUNT; b++) {
+        for (let tr = 0; tr < TRAIL_STEPS; tr++) {
+          const idx = b * TRAIL_STEPS + tr;
+          bPhase[idx] = (b / PEARL_COUNT) * TAU + ring * 0.4;
+          bSpeed[idx] = dir * (0.36 + (11 - ring) * 0.04);
+          bRadius[idx] = radius;
+          bHarm[idx] = harm;
+          bRingPhase[idx] = ringPhase;
+          bAzOff[idx] = azOff;
+          bRingId[idx] = ring;
+          bTrail[idx] = tr;
+          bCol[idx * 3] = colVec.r;
+          bCol[idx * 3 + 1] = colVec.g;
+          bCol[idx * 3 + 2] = colVec.b;
+        }
+      }
+      const bGeo = new THREE.BufferGeometry();
+      bGeo.setAttribute('position', new THREE.BufferAttribute(bPos, 3));
+      bGeo.setAttribute('aPhase', new THREE.BufferAttribute(bPhase, 1));
+      bGeo.setAttribute('aSpeed', new THREE.BufferAttribute(bSpeed, 1));
+      bGeo.setAttribute('aRadius', new THREE.BufferAttribute(bRadius, 1));
+      bGeo.setAttribute('aHarm', new THREE.BufferAttribute(bHarm, 1));
+      bGeo.setAttribute('aRingPhase', new THREE.BufferAttribute(bRingPhase, 1));
+      bGeo.setAttribute('aAzOff', new THREE.BufferAttribute(bAzOff, 1));
+      bGeo.setAttribute('aRingId', new THREE.BufferAttribute(bRingId, 1));
+      bGeo.setAttribute('aTrailIdx', new THREE.BufferAttribute(bTrail, 1));
+      bGeo.setAttribute('aColor', new THREE.BufferAttribute(bCol, 3));
+      line.add(new THREE.Points(bGeo, beadMaterial));
+
+      innerUniverse.add(line);
+      orbitLines.push(line);
+      orbitSpinSpeeds.push(dir * (0.09 + (ring % 5) * 0.03));
+    }
+
+    // --- Layer 3: Ethereal Moonstone Rose-Pearl Heart & Sacred Filigree Halo ---
+    const coreHaloMat = new THREE.SpriteMaterial({
+      map: auraTex,
+      color: 0xf4c2ec,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      depthWrite: false,
+      opacity: 0
+    });
+    const coreHalo = new THREE.Sprite(coreHaloMat);
+    coreHalo.scale.setScalar(0.54);
+    coreHalo.renderOrder = 2;
+    innerUniverse.add(coreHalo);
+
+    const coreStarMat = new THREE.SpriteMaterial({
+      map: starFlareTex,
+      color: 0xffe4be,
+      blending: THREE.AdditiveBlending,
+      transparent: true,
+      depthWrite: false,
+      opacity: 0
+    });
+    const coreStarFlare = new THREE.Sprite(coreStarMat);
+    coreStarFlare.scale.setScalar(0.62);
+    coreStarFlare.renderOrder = 3;
+    innerUniverse.add(coreStarFlare);
+
+    const heartOrbUniforms = { uTime: { value: 0 }, uOpacity: { value: 0 }, uBeat: { value: 0 } };
+    const heartOrbMat = new THREE.ShaderMaterial({
+      uniforms: heartOrbUniforms,
+      vertexShader: `
+  varying vec3 vNorm;
+  varying vec3 vView;
+  varying vec3 vPos;
+  void main() {
+   vPos = position;
+   vNorm = normalize(normalMatrix * normal);
+   vec4 mv = modelViewMatrix * vec4(position, 1.0);
+   vView = -mv.xyz;
+   gl_Position = projectionMatrix * mv;
+  }
+ `,
+      fragmentShader: `
+  uniform float uTime;
+  uniform float uOpacity;
+  uniform float uBeat;
+  varying vec3 vNorm;
+  varying vec3 vView;
+  varying vec3 vPos;
+  void main() {
+   vec3 n = normalize(vNorm), v = normalize(vView);
+   float ndv = clamp(dot(n, v), 0.0, 1.0);
+   float glassRim = pow(1.0 - ndv, 2.2) * smoothstep(0.0, 0.25, ndv);
+   float innerPin = pow(ndv, 3.8);
+
+   // Flowing liquid-silk nebula wisps inside a crystal-clear moonlight core
+   float swirlA = sin(vPos.y * 22.0 - uTime * 1.4 + sin(vPos.x * 16.0 + uTime * 0.9));
+   float swirlB = cos(vPos.z * 20.0 + vPos.x * 14.0 + uTime * 1.1);
+   float silk = smoothstep(-0.6, 0.85, swirlA * 0.55 + swirlB * 0.45);
+
+   vec3 roseMist = vec3(0.96, 0.58, 0.82);
+   vec3 pearlGlow = vec3(1.0, 0.92, 0.96);
+   vec3 champRim = vec3(1.0, 0.86, 0.68);
+   vec3 moonRim = vec3(0.76, 0.90, 1.0);
+
+   vec3 col = mix(roseMist, champRim, silk * 0.65) * (0.28 + 0.55 * innerPin);
+   col += pearlGlow * pow(ndv, 6.0) * (0.24 + 0.22 * uBeat);
+   col += mix(moonRim, champRim, 0.5 + 0.5 * vNorm.y) * glassRim * 0.68;
+
+   float a = clamp((innerPin * (0.16 + 0.09 * uBeat) + glassRim * 0.56 + silk * 0.07) * uOpacity, 0.0, 0.62);
+   gl_FragColor = vec4(col, a);
+  }
+ `,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const heartOrb = new THREE.Mesh(new THREE.SphereGeometry(0.104, 48, 36), heartOrbMat);
+    heartOrb.scale.set(1.0, 1.06, 1.0);
+    heartOrb.renderOrder = 10;
+    innerUniverse.add(heartOrb);
+
+    const innerCoreMat = new THREE.MeshBasicMaterial({
+      color: 0xd992ff,
+      wireframe: true,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const innerCore = new THREE.Mesh(new THREE.IcosahedronGeometry(0.155, 1), innerCoreMat);
+    innerCore.renderOrder = 4;
+    innerUniverse.add(innerCore);
+
+    // Dual delicate sacred hairline halos gently framing the pearl heart
+    const innerJewelMat = new THREE.LineBasicMaterial({
+      color: 0xffe0ad,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const innerJewel = new THREE.Group();
+    [0.148, 0.184].forEach((rad, idx) => {
+      const pts = [];
+      for (let i = 0; i <= 96; i++) {
+        const a = (i / 96) * TAU;
+        pts.push(new THREE.Vector3(Math.cos(a) * rad, 0, Math.sin(a) * rad));
+      }
+      const halo = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), innerJewelMat);
+      halo.rotation.set(idx === 0 ? 0.58 : -0.64, idx * 1.1, idx === 0 ? 0.34 : -0.42);
+      innerJewel.add(halo);
+    });
+    innerJewel.renderOrder = 5;
+    innerUniverse.add(innerJewel);
+
+    // --- Layer 4: Celestial Armillary Dome (subtle astral meridian arcs) ---
+    const outerSphereMat = new THREE.LineBasicMaterial({
+      color: 0x52e0ff,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const outerDome = new THREE.Group();
+    for (let m = 0; m < 6; m++) {
+      const cPts = [];
+      for (let i = 0; i <= 128; i++) {
+        const a = (i / 128) * TAU;
+        cPts.push(new THREE.Vector3(Math.cos(a) * 1.02, 0, Math.sin(a) * 1.02));
+      }
+      const arc = new THREE.Line(new THREE.BufferGeometry().setFromPoints(cPts), outerSphereMat);
+      if (m < 5) {
+        arc.rotation.set(Math.PI * 0.5, (m / 5) * Math.PI, 0.18 * (m - 2));
+      }
+      outerDome.add(arc);
+    }
+    innerUniverse.add(outerDome);
+
+    // --- Layer 5: 260 Prismatic Star-Spark Glints ---
+    const SPARK_COUNT = isMobileViewport() ? 160 : 260;
+    const sparkGeo = new THREE.BufferGeometry();
+    const sparkPos = new Float32Array(SPARK_COUNT * 3);
+    const sparkPhase = new Float32Array(SPARK_COUNT);
+    const sparkColor = new Float32Array(SPARK_COUNT * 3);
+    const sparkPalette = [
+      new THREE.Color(0xc78aff), // electric lavender
+      new THREE.Color(0x4beaff), // cyan
+      new THREE.Color(0xff6ec7), // rose pink
+      new THREE.Color(0xffd76b)  // champagne gold
+    ];
+    for (let i = 0; i < SPARK_COUNT; i++) {
+      const r = 0.18 + Math.pow(Math.random(), 0.70) * 0.88;
+      const theta = Math.random() * TAU, phi = Math.acos(2 * Math.random() - 1);
+      sparkPos[i * 3] = Math.sin(phi) * Math.cos(theta) * r;
+      sparkPos[i * 3 + 1] = Math.cos(phi) * r;
+      sparkPos[i * 3 + 2] = Math.sin(phi) * Math.sin(theta) * r;
+      sparkPhase[i] = Math.random() * TAU;
+      const sc = sparkPalette[i % sparkPalette.length];
+      sparkColor[i * 3] = sc.r;
+      sparkColor[i * 3 + 1] = sc.g;
+      sparkColor[i * 3 + 2] = sc.b;
+    }
+    sparkGeo.setAttribute('position', new THREE.BufferAttribute(sparkPos, 3));
+    sparkGeo.setAttribute('aPhase', new THREE.BufferAttribute(sparkPhase, 1));
+    sparkGeo.setAttribute('aColor', new THREE.BufferAttribute(sparkColor, 3));
+
+    sparkUniforms = {
+      uTime: { value: 0 },
+      uOpacity: { value: 0 },
+      uPixelRatio: { value: Math.min(DPR, 1.75) },
+      uScreenScale: { value: getScreenScale() }
+    };
+
+    const sparkMat = new THREE.ShaderMaterial({
+      uniforms: sparkUniforms,
+      vertexShader: `
+  attribute float aPhase;
+  attribute vec3 aColor;
+  uniform float uTime;
+  uniform float uOpacity;
+  uniform float uPixelRatio;
+  uniform float uScreenScale;
+  varying float vAlpha;
+  varying float vGlint;
+  varying vec3 vColor;
+  void main() {
+   float pulse = 0.42 + 0.58 * sin(uTime * 2.1 + aPhase);
+   vAlpha = pulse * uOpacity;
+   vGlint = smoothstep(0.65, 1.0, pulse);
+   vColor = aColor;
+   vec3 pos = position;
+   float spiral = uTime * 0.14 * (1.0 - length(pos) * 0.35);
+   float cs = cos(spiral), sn = sin(spiral);
+   pos.xz = mat2(cs, -sn, sn, cs) * pos.xz;
+   float breath = 1.0 + 0.065 * sin(uTime * 0.9 + aPhase * 0.5);
+   pos = pos * breath + 0.022 * sin(uTime * 0.65 + aPhase * vec3(1.3, 2.1, 0.9));
+   vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+   gl_Position = projectionMatrix * mv;
+   gl_PointSize = clamp((1.2 + 1.45 * pulse) * 10.5 * uPixelRatio * mix(0.66, 1.0, uScreenScale) / max(0.8, -mv.z), 2.2, 22.0);
+  }
+ `,
+      fragmentShader: `
+  varying float vAlpha;
+  varying float vGlint;
+  varying vec3 vColor;
+  void main() {
+   vec2 q = gl_PointCoord - 0.5;
+   float d = length(q);
+   if (d > 0.5) discard;
+   float soft = exp(-d * d * 20.0) + (1.0 - smoothstep(0.08, 0.5, d)) * 0.36;
+   float star = (exp(-abs(q.y) * 24.0) * exp(-abs(q.x) * 6.0) + exp(-abs(q.x) * 24.0) * exp(-abs(q.y) * 6.0)) * 0.55 * vGlint;
+   vec3 col = mix(vColor, vec3(1.0, 0.97, 1.0), clamp(star * 0.8 + soft * 0.25, 0.0, 1.0));
+   gl_FragColor = vec4(col, clamp(soft + star, 0.0, 1.0) * vAlpha);
+  }
+ `,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const sparkPoints = new THREE.Points(sparkGeo, sparkMat);
+    innerUniverse.add(sparkPoints);
+
+    // --- 3-Tier Sacred Rose Mandala Crown + Golden Filigree Stamens with Glowing Anther Pearls ---
+    const petalRingMat = new THREE.LineBasicMaterial({
+      color: 0xff6ac8,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const petalRingInnerMat = new THREE.LineBasicMaterial({
+      color: 0xffd268,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const petalRingLotusMat = new THREE.LineBasicMaterial({
+      color: 0x62ecff,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const mandalaGroup = new THREE.Group();
+    const makeMandalaPetal = (baseAngle, maxR, spread, cupY, angleOffset) => {
+      const pts = [];
+      const a0 = baseAngle + angleOffset;
+      for (let i = 0; i <= 72; i++) {
+        const u = (i / 72) * TAU;
+        const r = maxR * Math.pow(Math.sin(u * 0.5), 1.32);
+        const phi = spread * Math.sin(u);
+        const th = a0 + phi;
+        const y = cupY * Math.pow(Math.sin(u * 0.5), 1.55);
+        pts.push(new THREE.Vector3(Math.cos(th) * r, y, Math.sin(th) * r));
+      }
+      return new THREE.BufferGeometry().setFromPoints(pts);
+    };
+    for (let p = 0; p < 8; p++) {
+      const baseAngle = (p / 8) * TAU;
+      mandalaGroup.add(new THREE.Line(makeMandalaPetal(baseAngle, 0.78, 0.34, 0.12, 0), petalRingMat));
+      mandalaGroup.add(new THREE.Line(makeMandalaPetal(baseAngle, 0.54, 0.36, 0.08, Math.PI / 8), petalRingInnerMat));
+    }
+    for (let p = 0; p < 12; p++) {
+      const baseAngle = (p / 12) * TAU;
+      mandalaGroup.add(new THREE.Line(makeMandalaPetal(baseAngle, 0.36, 0.28, 0.05, Math.PI / 12), petalRingLotusMat));
+    }
+    innerUniverse.add(mandalaGroup);
+
+    const stamenGroup = new THREE.Group();
+    const stamenMat = new THREE.LineBasicMaterial({
+      color: 0xffe092,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const antherTips = [];
+    for (let s = 0; s < 12; s++) {
+      const sa = (s / 12) * TAU;
+      const tipPos = new THREE.Vector3(Math.cos(sa) * 0.255, 0.295 + (s % 2) * 0.035, Math.sin(sa) * 0.255);
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(Math.cos(sa) * 0.08, -0.01, Math.sin(sa) * 0.08),
+        new THREE.Vector3(Math.cos(sa) * 0.18, 0.16, Math.sin(sa) * 0.18),
+        tipPos
+      ]);
+      stamenGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(24)), stamenMat));
+      antherTips.push(tipPos.x, tipPos.y, tipPos.z);
+    }
+    const antherGeo = new THREE.BufferGeometry();
+    antherGeo.setAttribute('position', new THREE.Float32BufferAttribute(antherTips, 3));
+    stamenPearlUniforms = { uTime: { value: 0 }, uOpacity: { value: 0 }, uPixelRatio: { value: Math.min(DPR, 1.75) }, uScreenScale: { value: getScreenScale() } };
+    const stamenPearls = new THREE.Points(antherGeo, new THREE.ShaderMaterial({
+      uniforms: stamenPearlUniforms,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: `
+        uniform float uTime; uniform float uPixelRatio; uniform float uScreenScale; varying float vGlow;
+        void main() {
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          gl_Position = projectionMatrix * mv;
+          vGlow = 0.72 + 0.28 * sin(uTime * 2.6 + position.x * 16.0);
+          gl_PointSize = clamp(24.0 * uPixelRatio * mix(0.68, 1.0, uScreenScale) / max(0.8, -mv.z), 3.2, 20.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float uOpacity; varying float vGlow;
+        void main() {
+          vec2 q = gl_PointCoord - 0.5; float d = length(q);
+          if (d > 0.5) discard;
+          float c = exp(-d * d * 20.0) + (1.0 - smoothstep(0.15, 0.5, d)) * 0.35;
+          gl_FragColor = vec4(1.0, 0.90, 0.64, clamp(c, 0.0, 1.0) * vGlow * uOpacity);
+        }
+      `
+    }));
+    stamenGroup.add(stamenPearls);
+    innerUniverse.add(stamenGroup);
+
+    // ============================================================================
+    // GPU TWILIGHT STARDUST & SOFT LENS-IRIS BOKEH MOTES (ZERO SEAMS ON ANY VIEWPORT)
+    // ============================================================================
+    const AMB_STAR_COUNT = isMobileViewport() ? 95 : 150;
+    const AMB_BOKEH_COUNT = isMobileViewport() ? 22 : 34;
+    const AMB_TOTAL = AMB_STAR_COUNT + AMB_BOKEH_COUNT;
+    const ambPos = new Float32Array(AMB_TOTAL * 3);
+    const ambAttr = new Float32Array(AMB_TOTAL * 4); // x=depth, y=phase, z=sizePx, w=isBokeh (0 star, 1 bokeh)
+    const ambCol = new Float32Array(AMB_TOTAL * 3);
+    const ambPalette = [
+      new THREE.Color(0xf6d4ea), // rose quartz
+      new THREE.Color(0xd2bcff), // twilight lilac
+      new THREE.Color(0x9ed8f8), // moonlit aqua
+      new THREE.Color(0xffe4ce)  // champagne pearl
+    ];
+    for (let i = 0; i < AMB_TOTAL; i++) {
+      const isBokeh = i >= AMB_STAR_COUNT;
+      ambPos[i * 3] = Math.random();
+      ambPos[i * 3 + 1] = Math.random();
+      ambPos[i * 3 + 2] = isBokeh ? (0.012 + Math.random() * 0.022) : 0; // upward drift speed for bokeh
+      const depth = isBokeh ? (0.28 + Math.random() * 0.72) : (0.18 + Math.random() * 0.58);
+      ambAttr[i * 4] = depth;
+      ambAttr[i * 4 + 1] = Math.random() * TAU;
+      ambAttr[i * 4 + 2] = isBokeh ? lerp(28.0, 96.0, Math.pow(depth, 1.35)) : (1.6 + Math.random() * 2.4);
+      ambAttr[i * 4 + 3] = isBokeh ? 1.0 : 0.0;
+      const c = ambPalette[i % ambPalette.length];
+      ambCol[i * 3] = c.r;
+      ambCol[i * 3 + 1] = c.g;
+      ambCol[i * 3 + 2] = c.b;
+    }
+    const ambGeo = new THREE.BufferGeometry();
+    ambGeo.setAttribute('position', new THREE.BufferAttribute(ambPos, 3));
+    ambGeo.setAttribute('aAttr', new THREE.BufferAttribute(ambAttr, 4));
+    ambGeo.setAttribute('aColor', new THREE.BufferAttribute(ambCol, 3));
+
+    ambientUniforms = {
+      uTime: { value: 0 },
+      uPan: { value: new THREE.Vector2(0, 0) },
+      uReveal: { value: 0 },
+      uInfTravel: { value: 0 },
+      uAspect: { value: W / H },
+      uPixelRatio: { value: Math.min(DPR, 1.75) },
+      uScreenScale: { value: getScreenScale() }
+    };
+
+    const ambientBackdropPoints = new THREE.Points(ambGeo, new THREE.ShaderMaterial({
+      uniforms: ambientUniforms,
+      depthTest: false,
+      depthWrite: false,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      vertexShader: `
+        attribute vec4 aAttr;
+        attribute vec3 aColor;
+        uniform float uTime;
+        uniform vec2 uPan;
+        uniform float uReveal;
+        uniform float uInfTravel;
+        uniform float uAspect;
+        uniform float uPixelRatio;
+        uniform float uScreenScale;
+        varying float vAlpha;
+        varying float vKind;
+        varying vec3 vColor;
+        void main() {
+          float depth = aAttr.x;
+          float phase = aAttr.y;
+          float sizePx = aAttr.z;
+          float isBokeh = aAttr.w;
+
+          vec2 uv = position.xy;
+          if (isBokeh > 0.5) {
+            uv.y = fract(uv.y + uTime * position.z);
+            uv.x += sin(uTime * 0.24 + phase) * 0.012;
+          }
+          uv = fract(uv + uPan * depth * vec2(0.065, 0.045));
+          vec2 ndc = uv * 2.2 - 1.1; // Slight overscan outside screen prevents harsh wrap pop
+          gl_Position = vec4(ndc, 0.999, 1.0);
+          float scaleGain = isBokeh > 0.5 ? mix(0.68, 1.0, uScreenScale) : uScreenScale;
+          gl_PointSize = sizePx * uPixelRatio * scaleGain;
+
+          float pulse = isBokeh > 0.5
+            ? (0.65 + 0.35 * sin(uTime * 0.72 + phase))
+            : (0.28 + 0.72 * (0.5 + 0.5 * sin(uTime * 1.15 + phase)));
+          float vis = isBokeh > 0.5
+            ? (0.045 + 0.105 * uReveal) * mix(1.0, 0.42, uInfTravel) * (1.15 - depth * 0.45)
+            : (0.14 + 0.42 * uReveal) * mix(1.0, 0.78, uInfTravel);
+          vAlpha = pulse * vis;
+          vKind = isBokeh;
+          vColor = aColor;
+        }
+      `,
+      fragmentShader: `
+        varying float vAlpha;
+        varying float vKind;
+        varying vec3 vColor;
+        void main() {
+          if (vAlpha <= 0.004) discard;
+          vec2 q = gl_PointCoord - 0.5;
+          float d = length(q);
+          if (d > 0.5) discard;
+          float mask = 0.0;
+          if (vKind > 0.5) {
+            // Dreamy creamy lens bokeh: velvety Gaussian interior + faint iris sheen (no hard circles)
+            float softOrb = exp(-d * d * 7.8) * 0.75 + (1.0 - smoothstep(0.22, 0.5, d)) * 0.22;
+            float faintRim = exp(-pow((d - 0.35) * 10.0, 2.0)) * 0.12;
+            mask = softOrb + faintRim;
+          } else {
+            float core = exp(-d * d * 24.0);
+            float flare = (exp(-abs(q.y) * 28.0) * exp(-abs(q.x) * 8.0) + exp(-abs(q.x) * 28.0) * exp(-abs(q.y) * 8.0)) * 0.38;
+            mask = core + flare;
+          }
+          gl_FragColor = vec4(vColor, clamp(mask, 0.0, 1.0) * vAlpha);
+        }
+      `
+    }));
+    ambientBackdropPoints.renderOrder = -950;
+    ambientBackdropPoints.frustumCulled = false;
+    scene.add(ambientBackdropPoints);
+
+    // ============================================================================
+    // UNIFIED TIMELINE & INTERACTION STATE
+    // ============================================================================
+    const phaseLabel = document.getElementById('phase');
+    const interfaceEl = document.getElementById('ui');
+    const controlsEl = document.getElementById('controls');
+    const decayButton = document.getElementById('decay');
+    const rebirthButton = document.getElementById('rebirth');
+    const particlesButton = document.getElementById('particles');
+    const infiniteButton = document.getElementById('infinite');
+    const soundButton = document.getElementById('sound');
+    const hudToggleButton = document.getElementById('hud-toggle');
+
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const motionScale = reducedMotion ? 0.45 : 1;
+
+    const raycaster = new THREE.Raycaster();
+    const pointerNdc = new THREE.Vector2();
+    const pointerPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.35);
+    const pointerHit = new THREE.Vector3();
+    const pointerTarget = new THREE.Vector3(0, 0.35, 0);
+
+    const _stemTip = new THREE.Vector3();
+    const _heartWorldPos = new THREE.Vector3();
+    const _chaliceWorldPos = new THREE.Vector3();
+    const _estChalicePos = new THREE.Vector3(0.04, 3.24, 0);
+    const _chaliceAnchor = new THREE.Vector3(0.04, 3.24, 0);
+    const _dustLocal = new THREE.Vector3();
+    const _dustWorld = new THREE.Vector3();
+    const _camGoalTarget = new THREE.Vector3();
+    const _camCurrentTarget = new THREE.Vector3(0, 0.45, 0);
+    const _camFinalLook = new THREE.Vector3();
+    const _projVec = new THREE.Vector3();
+    const _heartScreenPos = { x: 0.5, y: 0.45 };
+    const _infTravelVel = { v: 0 };
+
+    const phaseNames = {
+      void: 'THE VOID',
+      awakening: 'AWAKENING',
+      living: 'LIVING SCULPTURE',
+      decay: 'FLOWER DECAY',
+      decayed: 'THE MEMORY REMAINS',
+      rebirth: 'REBIRTH'
+    };
+
+    const state = {
+      mode: 'void',
+      simTime: 0,
+      activeTime: 0,
+      reveal: 0,
+      stemGrowth: 0,
+      bloom: 0,
+      decayProgress: 0,
+      decayRateBoost: 0,
+      swayX: 0,
+      swayVelX: 0,
+      swayZ: 0,
+      swayVelZ: 0,
+      yaw: -0.35,
+      pitch: 0.04,
+      targetYaw: -0.35,
+      targetPitch: 0.04,
+      velYaw: 0,
+      velPitch: 0,
+      velZoom: 0,
+      zoom: 1,
+      targetZoom: 1,
+      macroZoom: false,
+      userHasOrbited: false,
+      autoOrbitWeight: 1,
+      pointerStrength: 0,
+      pointerInside: false,
+      pulse: 0,
+      pulseTarget: 0,
+      infiniteActive: false,
+      infiniteTravel: 0,
+      infiniteHold: 0,
+      infiniteBloom: 0,
+      infShock: 0,
+      showParticles: true,
+      interfaceHidden: false,
+      soundOn: false,
+      hasToggledSound: false
+    };
+
+    const activePointers = new Map();
+    let dragging = false, primaryPointerId = null, lx = 0, ly = 0, moved = 0, lastPinchDist = 0, lastMoveTime = 0;
+    let lastTapTime = 0, lastDoubleTapAt = 0;
+    let lastNow = performance.now();
+    let audioContext = null, audioGain = null, audioFilter = null, infAudioGain = null, chimeGain = null;
+
+    function triggerHaptic(ms = 6) {
+      try { if (isTouchDevice && navigator.vibrate) navigator.vibrate(ms); } catch (_) { }
+    }
+
+    function playChime(kind) {
+      if (!state.soundOn || !audioContext || !chimeGain) return;
+      const now = audioContext.currentTime;
+      const seq = kind === 'infinite'
+        ? [440.0, 659.25, 830.61, 987.77, 1318.51]
+        : kind === 'rebirth'
+          ? [329.63, 440.0, 554.37, 659.25]
+          : [392.0, 329.63, 261.63];
+      seq.forEach((freq, idx) => {
+        const t0 = now + idx * 0.085;
+        const osc = audioContext.createOscillator();
+        const g = audioContext.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(kind === 'infinite' ? 0.095 : 0.07, t0 + 0.04);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.85);
+        osc.connect(g);
+        g.connect(chimeGain);
+        osc.start(t0);
+        osc.stop(t0 + 1.9);
+      });
+    }
+
+    function updateControlStates() {
+      decayButton.classList.toggle('active', state.mode === 'decay');
+      rebirthButton.classList.toggle('dimmed', state.mode === 'living' || state.mode === 'awakening' || state.mode === 'void');
+      particlesButton.classList.toggle('active', state.showParticles);
+      infiniteButton.classList.toggle('active', state.infiniteActive);
+      soundButton.classList.toggle('active', state.soundOn);
+      soundButton.classList.toggle('sound-invite', !state.soundOn && !state.hasToggledSound);
+    }
+
+    function updatePhase() {
+      phaseLabel.textContent = state.infiniteActive ? 'INFINITE SANCTUARY' : (phaseNames[state.mode] || phaseNames.living);
+      updateControlStates();
+    }
+
+    function enterVoid() {
+      if (state.mode !== 'void') return;
+      state.mode = 'awakening';
+      state.activeTime = 0;
+      state.decayProgress = 0;
+      state.userHasOrbited = false;
+      state.yaw = -0.35;
+      state.targetYaw = -0.35;
+      state.pitch = 0.08;
+      state.targetPitch = 0.04;
+      state.zoom = 1;
+      state.targetZoom = 1;
+      state.velZoom = 0;
+      state.macroZoom = false;
+      plant.visible = true;
+      updatePhase();
+    }
+
+    function resetExperience() {
+      state.mode = 'void';
+      state.activeTime = 0;
+      state.reveal = 0;
+      state.stemGrowth = 0;
+      state.bloom = 0;
+      state.decayProgress = 0;
+      state.decayRateBoost = 0;
+      state.swayX = 0; state.swayVelX = 0;
+      state.swayZ = 0; state.swayVelZ = 0;
+      state.targetYaw = -0.35; state.targetPitch = 0.04;
+      state.velYaw = 0; state.velPitch = 0; state.velZoom = 0;
+      state.targetZoom = 1;
+      state.macroZoom = false;
+      state.userHasOrbited = false;
+      state.infiniteActive = false;
+      state.infiniteTravel = 0;
+      state.infiniteHold = 0;
+      state.infiniteBloom = 0;
+      state.infShock = 0;
+      _infTravelVel.v = 0;
+      if (cam.fov !== 40) { cam.fov = 40; cam.updateProjectionMatrix(); }
+      infiniteButton.textContent = 'INFINITE FLOWER';
+      innerUniverse.visible = false;
+      plant.visible = false;
+      dustPoints.visible = false;
+
+      for (let i = 0; i < head.petals.length; i++) {
+        const p = head.petals[i];
+        p.mesh.position.set(0, 0, 0);
+        p.mesh.rotation.set(0, 0, 0);
+        p.mesh.scale.setScalar(1);
+        p.mesh.material.opacity = 1;
+        p.mesh.material.transparent = false;
+        p.mesh.material.depthWrite = true;
+        if (p.mesh.material.userData.uPetalDecay) p.mesh.material.userData.uPetalDecay.value = 0;
+      }
+      for (let i = 0; i < leaves.length; i++) {
+        const l = leaves[i];
+        l.m.position.set(l.x0, l.y0, l.z0);
+        l.m.rotation.set(0, l.y, l.z);
+        l.m.scale.setScalar(0.001);
+        l.lm.opacity = 1;
+        l.lm.transparent = true;
+        l.m.visible = true;
+      }
+      head.g.scale.setScalar(0.001);
+      heartAura.material.opacity = 0;
+      seedAura.material.opacity = 0;
+      updatePhase();
+    }
+
+    function startDecay() {
+      if (state.mode === 'void') {
+        enterVoid();
+        return;
+      }
+      triggerHaptic(8);
+      if (state.mode === 'decay') {
+        state.decayRateBoost = Math.min(state.decayRateBoost + 0.45, 0.9);
+        state.pulseTarget = 0.85;
+        return;
+      }
+      if (state.mode === 'decayed') return;
+      state.mode = 'decay';
+      state.decayRateBoost = 0;
+      playChime('decay');
+      updatePhase();
+    }
+
+    function startRebirth() {
+      if (state.mode === 'void') {
+        enterVoid();
+        return;
+      }
+      if (state.mode === 'living' || state.mode === 'awakening') return;
+      if (state.mode !== 'decay' && state.mode !== 'decayed') return;
+      triggerHaptic(8);
+      state.mode = 'rebirth';
+      state.decayRateBoost = 0;
+      playChime('rebirth');
+      updatePhase();
+    }
+
+    function toggleParticles() {
+      triggerHaptic(5);
+      state.showParticles = !state.showParticles;
+      particlesButton.textContent = state.showParticles ? 'FIELD ON' : 'FIELD OFF';
+      updateControlStates();
+    }
+
+    function toggleInterface() {
+      state.interfaceHidden = !state.interfaceHidden;
+      interfaceEl.classList.toggle('hidden', state.interfaceHidden);
+      hudToggleButton.setAttribute('aria-pressed', state.interfaceHidden ? 'true' : 'false');
+      hudToggleButton.setAttribute('aria-label', state.interfaceHidden ? 'Show interface' : 'Hide interface');
+      hudToggleButton.title = state.interfaceHidden ? 'Show interface (H)' : 'Hide interface (H)';
+    }
+
+    function toggleInfinite() {
+      if (state.mode === 'void') enterVoid();
+      triggerHaptic(10);
+      if (!state.infiniteActive) {
+        if (state.mode === 'decay' || state.mode === 'decayed') {
+          state.mode = 'rebirth';
+          state.decayRateBoost = 0;
+        }
+        state.infiniteActive = true;
+        state.infiniteHold = 0;
+        state.infShock = 1.0;
+        bgUniforms.uShockOrigin.value.set(_heartScreenPos.x, 1.0 - _heartScreenPos.y);
+        innerUniverse.visible = true;
+        infiniteButton.textContent = 'RETURN TO FLOWER';
+        playChime('infinite');
+      } else {
+        state.infiniteActive = false;
+        state.infShock = 0.55;
+        bgUniforms.uShockOrigin.value.set(_heartScreenPos.x, 1.0 - _heartScreenPos.y);
+        infiniteButton.textContent = 'INFINITE FLOWER';
+      }
+      if (audioFilter && audioContext && state.soundOn) {
+        audioFilter.frequency.setTargetAtTime(state.infiniteActive ? 620 : 240, audioContext.currentTime, 0.8);
+      }
+      if (infAudioGain && audioContext) {
+        infAudioGain.gain.setTargetAtTime(state.infiniteActive && state.soundOn ? 0.20 : 0, audioContext.currentTime, 0.9);
+      }
+      updatePhase();
+    }
+
+    function createCathedralReverbBuffer(ctx) {
+      const rate = ctx.sampleRate;
+      const len = Math.floor(rate * 2.6);
+      const buf = ctx.createBuffer(2, len, rate);
+      for (let ch = 0; ch < 2; ch++) {
+        const data = buf.getChannelData(ch);
+        for (let i = 0; i < len; i++) {
+          const env = Math.pow(1 - i / len, 2.8);
+          data[i] = (Math.random() * 2 - 1) * env * 0.45;
+        }
+      }
+      return buf;
+    }
+
+    function toggleSound() {
+      triggerHaptic(6);
+      if (!audioContext) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        audioContext = new AudioContextClass();
+        audioGain = audioContext.createGain();
+        audioGain.gain.value = 0;
+        audioGain.connect(audioContext.destination);
+
+        // Stereo Cathedral Reverb bus + Dry mix
+        const convolver = audioContext.createConvolver();
+        convolver.buffer = createCathedralReverbBuffer(audioContext);
+        const wetGain = audioContext.createGain();
+        wetGain.gain.value = 0.48;
+        const dryGain = audioContext.createGain();
+        dryGain.gain.value = 0.72;
+        convolver.connect(wetGain);
+        wetGain.connect(audioGain);
+        dryGain.connect(audioGain);
+
+        audioFilter = audioContext.createBiquadFilter();
+        audioFilter.type = 'lowpass';
+        audioFilter.frequency.value = 240;
+        audioFilter.Q.value = 0.85;
+        audioFilter.connect(dryGain);
+        audioFilter.connect(convolver);
+
+        chimeGain = audioContext.createGain();
+        chimeGain.gain.value = 1.0;
+        chimeGain.connect(convolver);
+        chimeGain.connect(dryGain);
+
+        // Ethereal meditative harmonic pad (Aadd9 / suspended shimmer with stereo spread)
+        const voices = [
+          [110.0, 'sine', 0.34, 0, 0],
+          [164.81, 'triangle', 0.18, 0.35, -0.35],
+          [220.0, 'sine', 0.18, -0.4, 0.35],
+          [277.18, 'sine', 0.11, 0.65, -0.55],
+          [329.63, 'sine', 0.08, -0.55, 0.55]
+        ];
+        voices.forEach(([freq, type, amp, detune, panVal]) => {
+          const osc = audioContext.createOscillator();
+          const g = audioContext.createGain();
+          osc.type = type;
+          osc.frequency.value = freq + detune;
+          g.gain.value = amp;
+          osc.connect(g);
+          if (audioContext.createStereoPanner) {
+            const p = audioContext.createStereoPanner();
+            p.pan.value = panVal;
+            g.connect(p);
+            p.connect(audioFilter);
+          } else {
+            g.connect(audioFilter);
+          }
+          osc.start();
+        });
+
+        // Celestial high fifth/octave shimmer voice that blooms only in Infinite Flower
+        infAudioGain = audioContext.createGain();
+        infAudioGain.gain.value = 0;
+        infAudioGain.connect(audioFilter);
+        [554.37, 659.25, 830.61].forEach((freq, idx) => {
+          const osc = audioContext.createOscillator();
+          const vg = audioContext.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq + (idx % 2 ? -0.45 : 0.45);
+          vg.gain.value = [0.46, 0.38, 0.24][idx];
+          osc.connect(vg);
+          vg.connect(infAudioGain);
+          osc.start();
+        });
+
+        // Gentle organic LFO breathing on filter resonance
+        const lfo = audioContext.createOscillator();
+        const lfoGain = audioContext.createGain();
+        lfo.frequency.value = 0.11;
+        lfoGain.gain.value = 72;
+        lfo.connect(lfoGain);
+        lfoGain.connect(audioFilter.frequency);
+        lfo.start();
+      }
+      state.soundOn = !state.soundOn;
+      state.hasToggledSound = true;
+      if (state.soundOn) {
+        audioContext.resume();
+        if (audioFilter) {
+          audioFilter.frequency.setTargetAtTime(state.infiniteActive ? 620 : 240, audioContext.currentTime, 0.6);
+        }
+      }
+      if (infAudioGain) {
+        infAudioGain.gain.setTargetAtTime(state.soundOn && state.infiniteActive ? 0.20 : 0, audioContext.currentTime, 0.7);
+      }
+      audioGain.gain.setTargetAtTime(state.soundOn ? 0.024 : 0, audioContext.currentTime, 0.65);
+      soundButton.textContent = state.soundOn ? 'SOUND ON' : 'SOUND OFF';
+      updateControlStates();
+    }
+
+    function playTouchNote(kind = 'tap', normX = 0) {
+      if (!state.soundOn || !audioContext || !chimeGain) return;
+      const notes = [440.0, 493.88, 554.37, 659.25, 739.99, 880.0, 987.77, 1108.73];
+      const now = audioContext.currentTime;
+      const baseIdx = Math.min(notes.length - 1, Math.max(0, Math.round((clamp(normX * 0.5 + 0.5)) * (notes.length - 1))));
+      const pair = kind === 'macro' ? [notes[baseIdx], notes[Math.min(notes.length - 1, baseIdx + 2)]] : [notes[baseIdx]];
+      pair.forEach((freq, idx) => {
+        const t0 = now + idx * 0.065;
+        const osc = audioContext.createOscillator();
+        const g = audioContext.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(kind === 'macro' ? 0.055 : 0.048, t0 + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.35);
+        osc.connect(g);
+        if (audioContext.createStereoPanner) {
+          const p = audioContext.createStereoPanner();
+          p.pan.value = clamp(normX * 0.65, -0.75, 0.75);
+          g.connect(p);
+          p.connect(chimeGain);
+        } else {
+          g.connect(chimeGain);
+        }
+        osc.start(t0);
+        osc.stop(t0 + 1.4);
+      });
+    }
+
+    function updateAudioDynamics() {
+      if (!state.soundOn || !audioContext || !audioFilter || audioContext.state !== 'running') return;
+      const angVel = Math.min(1, (Math.abs(state.velYaw) + Math.abs(state.velPitch)) * 0.42);
+      const zoomLift = clamp((1 - state.zoom) * 1.4, 0, 0.55);
+      const baseFreq = lerp(240, 580, state.infiniteTravel);
+      const targetFreq = baseFreq + angVel * 320 + zoomLift * 140;
+      audioFilter.frequency.setTargetAtTime(targetFreq, audioContext.currentTime, 0.16);
+    }
+
+    decayButton.addEventListener('click', startDecay);
+    rebirthButton.addEventListener('click', startRebirth);
+    particlesButton.addEventListener('click', toggleParticles);
+    infiniteButton.addEventListener('click', toggleInfinite);
+    soundButton.addEventListener('click', toggleSound);
+    hudToggleButton.addEventListener('click', toggleInterface);
+
+    // ============================================================================
+    // POINTER, TOUCH (ORBIT + PINCH ZOOM + MACRO DOUBLE-TAP) & WHEEL INPUT
+    // ============================================================================
+    function getPinchDistance() {
+      const pts = Array.from(activePointers.values());
+      if (pts.length < 2) return 0;
+      return Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+    }
+
+    function toggleMacroFocus() {
+      state.macroZoom = !state.macroZoom;
+      state.targetZoom = state.macroZoom ? 0.62 : 1.0;
+      state.pulseTarget = 0.75;
+      playTouchNote('macro', 0);
+      triggerHaptic(7);
+    }
+
+    function isButtonTarget(target) {
+      return target instanceof Element && !!target.closest('button');
+    }
+
+    addEventListener('pointerdown', e => {
+      if (isButtonTarget(e.target)) return;
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (activePointers.size === 1) {
+        primaryPointerId = e.pointerId;
+        dragging = true;
+        lx = e.clientX;
+        ly = e.clientY;
+        moved = 0;
+        lastMoveTime = performance.now();
+        state.velYaw = 0;
+        state.velPitch = 0;
+      } else if (activePointers.size === 2) {
+        dragging = false;
+        lastPinchDist = getPinchDistance();
+      }
+      pointerNdc.set((e.clientX / W) * 2 - 1, -(e.clientY / H) * 2 + 1);
+      state.pointerInside = true;
+      try { e.target.setPointerCapture(e.pointerId); } catch (_) { }
+    });
+
+    addEventListener('pointermove', e => {
+      if (activePointers.has(e.pointerId)) {
+        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      }
+      if (activePointers.size >= 2) {
+        const dist = getPinchDistance();
+        if (lastPinchDist > 0 && dist > 0) {
+          const ratio = clamp(lastPinchDist / dist, 0.85, 1.18);
+          state.targetZoom = clamp(state.targetZoom * ratio, 0.50, 1.65);
+          state.macroZoom = state.targetZoom < 0.76;
+        }
+        lastPinchDist = dist;
+        return;
+      }
+      if (primaryPointerId !== null && e.pointerId !== primaryPointerId) return;
+      pointerNdc.set((e.clientX / W) * 2 - 1, -(e.clientY / H) * 2 + 1);
+      state.pointerInside = true;
+      if (!dragging) return;
+      const nowMove = performance.now();
+      const moveDt = clamp((nowMove - lastMoveTime) / 1000, 0.004, 0.08);
+      lastMoveTime = nowMove;
+
+      const dx = e.clientX - lx, dy = e.clientY - ly;
+      lx = e.clientX;
+      ly = e.clientY;
+      moved += Math.abs(dx) + Math.abs(dy);
+      if (moved > 4) state.userHasOrbited = true;
+
+      const sens = isTouchDevice ? 0.0068 : 0.0052;
+      const dYaw = -dx * sens;
+      const dPitch = dy * sens;
+      state.targetYaw += dYaw;
+      state.targetPitch = clamp(state.targetPitch + dPitch, -0.92, 0.92);
+
+      const instVelYaw = clamp((dYaw / moveDt) * 0.52, -2.6, 2.6);
+      const instVelPitch = clamp((dPitch / moveDt) * 0.45, -1.6, 1.6);
+      state.velYaw = lerp(state.velYaw, instVelYaw, 0.45);
+      state.velPitch = lerp(state.velPitch, instVelPitch, 0.45);
+      state.swayVelX = clamp(state.swayVelX + dx * 0.00075, -0.14, 0.14);
+    });
+
+    function releasePointer(e) {
+      activePointers.delete(e.pointerId);
+      if (activePointers.size < 2) lastPinchDist = 0;
+      if (primaryPointerId !== null && e.pointerId !== primaryPointerId) return;
+
+      if (performance.now() - lastMoveTime > 90) {
+        state.velYaw = 0;
+        state.velPitch = 0;
+      }
+      if (dragging && moved < 8 && state.mode !== 'void' && !isButtonTarget(e.target)) {
+        const nowTap = performance.now();
+        if (e.pointerType !== 'mouse' && nowTap - lastTapTime < 310) {
+          lastTapTime = 0;
+          lastDoubleTapAt = nowTap;
+          toggleMacroFocus();
+        } else {
+          lastTapTime = nowTap;
+          if (state.mode === 'decay') state.decayRateBoost = Math.min(state.decayRateBoost + 0.45, 0.9);
+          state.pulseTarget = 1.0;
+          state.infShock = Math.max(state.infShock, 0.65);
+          bgUniforms.uShockOrigin.value.set(e.clientX / W, 1.0 - e.clientY / H);
+          const tapXDir = clamp((e.clientX / W - 0.5) * 2.0, -1, 1);
+          state.swayVelX = clamp(state.swayVelX + tapXDir * 0.025, -0.14, 0.14);
+          state.swayVelZ += 0.032;
+          playTouchNote('tap', tapXDir);
+          triggerHaptic(5);
+        }
+      }
+      dragging = false;
+      primaryPointerId = null;
+      if (e.pointerType !== 'mouse') state.pointerInside = false;
+      try { e.target.releasePointerCapture(e.pointerId); } catch (_) { }
+    }
+
+    addEventListener('pointerup', releasePointer);
+    addEventListener('pointercancel', e => {
+      activePointers.delete(e.pointerId);
+      lastPinchDist = 0;
+      if (primaryPointerId !== null && e.pointerId !== primaryPointerId) return;
+      dragging = false;
+      primaryPointerId = null;
+      state.pointerInside = false;
+    });
+    addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') state.pointerInside = false; });
+    addEventListener('wheel', e => {
+      if (state.mode === 'void') return;
+      e.preventDefault();
+      const unitScale = e.deltaMode === 1 ? 26 : e.deltaMode === 2 ? 420 : 1;
+      const d = clamp(e.deltaY * unitScale, -160, 160);
+      state.velZoom = clamp(state.velZoom + d * 0.0042, -1.6, 1.6);
+      state.targetZoom = clamp(state.targetZoom * (1 + d * 0.00072), 0.50, 1.65);
+      state.macroZoom = state.targetZoom < 0.76;
+    }, { passive: false });
+    addEventListener('dblclick', e => {
+      if (performance.now() - lastDoubleTapAt < 500) return;
+      if (state.mode !== 'void' && !isButtonTarget(e.target)) toggleMacroFocus();
+    });
+    document.addEventListener('visibilitychange', () => {
+      lastNow = performance.now();
+      if (audioContext && state.soundOn) {
+        if (document.hidden) audioContext.suspend();
+        else audioContext.resume();
+      }
+    });
+
+    addEventListener('keydown', e => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target.isContentEditable) return;
+      const k = e.key.toLowerCase();
+      if (e.code === 'Space') { e.preventDefault(); startRebirth(); }
+      else if (k === 'd') startDecay();
+      else if (e.key === 'Escape') {
+        if (state.infiniteActive) toggleInfinite();
+        else { resetExperience(); enterVoid(); }
+      } else if (k === 'r') { resetExperience(); enterVoid(); }
+      else if (k === 'v') toggleParticles();
+      else if (k === 'h') toggleInterface();
+      else if (k === 'i') toggleInfinite();
+      else if (k === 's') toggleSound();
+    });
+
+    // ============================================================================
+    // UNIFIED ANIMATION UPDATE (DELTA-TIME CORRECT, CONTINUOUS TRANSITIONS)
+    // ============================================================================
+    function updateTimeline(dt) {
+      const isVoid = state.mode === 'void';
+      if (!isVoid) state.activeTime += dt;
+
+      const revealT = isVoid ? 0 : smootherstep(0, 4.2 * motionScale, state.activeTime);
+      state.reveal = damp(state.reveal, isVoid ? 0 : revealT, 5.0, dt);
+
+      if (state.mode === 'awakening') {
+        const st = clamp(state.activeTime / (3.3 * motionScale));
+        state.stemGrowth = 0.55 * smootherstep(0, 1, st) + 0.45 * (1 - Math.pow(1 - st, 2.3));
+        state.bloom = smootherstep(1.5 * motionScale, 6.8 * motionScale, state.activeTime);
+        if (state.activeTime >= 7.0 * motionScale) {
+          state.mode = 'living';
+          updatePhase();
+        }
+      } else if (state.mode === 'living') {
+        state.stemGrowth = damp(state.stemGrowth, 1, 4.0, dt);
+        state.bloom = damp(state.bloom, 1, 4.0, dt);
+        state.decayProgress = damp(state.decayProgress, 0, 4.0, dt);
+      } else if (state.mode === 'decay') {
+        state.stemGrowth = damp(state.stemGrowth, 1, 3.0, dt);
+        state.decayRateBoost = damp(state.decayRateBoost, 0, 1.4, dt);
+        const decaySpeed = (1 / (9.6 * motionScale)) * (1 + state.decayRateBoost);
+        state.decayProgress = clamp(state.decayProgress + decaySpeed * dt, 0, 1);
+        state.bloom = damp(state.bloom, Math.max(0.32, 1 - state.decayProgress * 0.56), 3.0, dt);
+        if (state.decayProgress >= 1) {
+          state.mode = 'decayed';
+          updatePhase();
+        }
+      } else if (state.mode === 'decayed') {
+        state.decayProgress = 1;
+      } else if (state.mode === 'rebirth') {
+        const rebirthSpeed = (state.infiniteActive ? 2.2 : 1) / (8.2 * motionScale);
+        state.decayProgress = clamp(state.decayProgress - rebirthSpeed * dt, 0, 1);
+        const reconstruct = 1 - state.decayProgress;
+        const targetBloom = lerp(0.32, 1, smootherstep(0.16, 0.96, reconstruct));
+        state.bloom = damp(state.bloom, targetBloom, 4.2, dt);
+        if (state.decayProgress <= 0) {
+          state.decayProgress = 0;
+          state.bloom = 1;
+          state.mode = 'living';
+          updatePhase();
+        }
+      }
+    }
+
+    function updateFlowerAndDissolution(dt) {
+      const t = state.simTime;
+      const active = state.mode !== 'void';
+      plant.visible = active;
+
+      const springK = 1.85, springDamp = 2.65;
+      state.swayVelX += (-springK * state.swayX - springDamp * state.swayVelX) * dt;
+      state.swayX += state.swayVelX * dt;
+      state.swayVelZ += (-springK * state.swayZ - springDamp * state.swayVelZ) * dt;
+      state.swayZ += state.swayVelZ * dt;
+
+      const breezeX = Math.sin(t * 0.27) * 0.032 * motionScale + state.swayX;
+      const breezeZ = Math.cos(t * 0.21) * 0.022 * motionScale + state.swayZ;
+      U.breezeX.value = breezeX;
+      U.breezeZ.value = breezeZ;
+      U.swayAmp.value = active ? 1 : 0;
+
+      const decayBow = smootherstep(0.10, 0.90, state.decayProgress) * 0.22;
+      plant.rotation.set(
+        Math.sin(t * 0.19) * 0.014 * motionScale + breezeZ * 0.16 + decayBow,
+        Math.sin(t * 0.2) * 0.045 * motionScale,
+        -breezeX * 0.13 + decayBow * 0.18
+      );
+      plant.position.y = active ? Math.sin(t * 0.35) * 0.024 * motionScale : 0;
+
+      updateStemGrowth(stem, state.stemGrowth);
+
+      // Genesis light sprout & floor pool softly grounding stem base
+      const genesisBurst = active ? smootherstep(0, 0.45, state.activeTime) * (1 - smootherstep(1.8, 4.4, state.activeTime)) : 0;
+      const stemAlive = 1 - smootherstep(0.45, 0.98, state.decayProgress);
+      seedAura.material.opacity = active ? clamp(genesisBurst * 0.52 + stemAlive * 0.045 * (1 - state.infiniteBloom)) : 0;
+      seedAura.scale.setScalar(lerp(0.68, 1.35, genesisBurst) * (0.94 + 0.06 * Math.sin(t * 1.8)));
+
+      // In Infinite Flower mode, fade physical stem & leaves cleanly into background memory so sanctuary glows pure
+      const crystalPhase = smoothstep(0.04, 0.65, state.infiniteBloom);
+      const stemCrystal = lerp(1.0, 0.015, crystalPhase);
+
+      stemPlinthUniforms.uTime.value = t;
+      stemPlinthUniforms.uOpacity.value = active ? clamp((0.28 + 0.55 * state.reveal) * (0.42 + 0.58 * stemAlive) * (1 - crystalPhase * 0.96)) : 0;
+      stemPlinth.visible = stemPlinthUniforms.uOpacity.value > 0.005;
+
+      const decayFade = 1 - smootherstep(0.32, 0.98, state.decayProgress);
+      woodMat.opacity = active ? lerp(0.36, 1, decayFade) * stemCrystal : 0;
+      woodMat.transparent = true;
+      woodMat.depthWrite = woodMat.opacity >= 0.995;
+      calyxMat.opacity = active ? decayFade * stemCrystal : 0;
+      calyxMat.transparent = calyxMat.opacity < 0.995;
+      calyxMat.depthWrite = calyxMat.opacity >= 0.995;
+      coreMat.opacity = active ? decayFade * lerp(1.0, 0.0, crystalPhase) : 0;
+      coreMat.transparent = coreMat.opacity < 0.995;
+      coreMat.depthWrite = coreMat.opacity >= 0.995;
+      core.visible = active && coreMat.opacity > 0.004;
+
+      for (let i = 0; i < leaves.length; i++) {
+        const l = leaves[i];
+        const growth = active ? smootherstep(l.uLeaf + 0.015, Math.min(l.uLeaf + 0.26, 1.03), state.stemGrowth * 1.06) : 0;
+        const preDroop = smootherstep(Math.max(0, l.fallDelay - 0.14), l.fallDelay, state.decayProgress);
+        const fallT = smootherstep(l.fallDelay, Math.min(l.fallDelay + 0.56, 0.96), state.decayProgress);
+        const dropEase = Math.pow(fallT, 1.28);
+        const flutterEnv = smoothstep(0.0, 0.22, fallT) * (1.0 - 0.25 * smoothstep(0.75, 1.0, fallT));
+        const flutterPhase = fallT * l.flutterFreq * Math.PI + l.phase;
+
+        const swingX = Math.sin(flutterPhase) * l.flutterAmp * flutterEnv;
+        const swingZ = Math.cos(flutterPhase * 0.72 + l.phase) * l.flutterAmp * 0.65 * flutterEnv;
+        l.m.position.set(
+          l.x0 + l.driftX * fallT + swingX,
+          l.y0 - l.fallDrop * dropEase,
+          l.z0 + l.driftZ * fallT + swingZ
+        );
+
+        const gScale = Math.max(growth * lerp(1.0, 0.88, smootherstep(0.55, 1.0, fallT)), 0.001);
+        l.m.scale.set(gScale, Math.max(lerp(0.35, 1, growth) * gScale, 0.001), gScale);
+
+        const unfoldAngle = (1 - growth) * 0.52 * (l.z > 1.5 ? -1 : 1);
+        const lagBreeze = Math.sin(t * 0.42 - l.phase) * 0.024 * motionScale + breezeX * 0.12;
+        const droopAngle = preDroop * 0.30 * l.droopDir;
+        const bankZ = Math.cos(flutterPhase) * 0.45 * flutterEnv;
+        const pitchX = Math.sin(flutterPhase * 0.7 + l.phase) * 0.36 * flutterEnv + l.tiltEndX * fallT;
+        const yawY = l.y + Math.cos(t * 0.31 - l.phase) * 0.018 * motionScale * (1 - fallT) + l.spinY * fallT;
+        l.m.rotation.set(pitchX, yawY, l.z + unfoldAngle + lagBreeze * (1 - fallT * 0.6) + droopAngle + bankZ);
+
+        const leafAlpha = (1 - smootherstep(0.62, 0.98, fallT)) * stemCrystal;
+        l.lm.opacity = active ? leafAlpha : 0;
+        l.lm.transparent = l.lm.opacity < 0.995;
+        l.lm.depthWrite = l.lm.opacity >= 0.995;
+        l.m.visible = active && l.lm.opacity > 0.004 && growth > 0.004;
+      }
+
+      stem.curve.getPointAt(clamp(state.stemGrowth), _stemTip);
+      head.g.position.copy(_stemTip);
+
+      const headGrow = active ? smootherstep(0.32, 0.90, state.stemGrowth) : 0;
+      const headSizeFactor = 0.9 * headGrow * (0.58 + 0.42 * smootherstep(0, 1, state.bloom));
+      const headWilt = smootherstep(0.06, 0.78, state.decayProgress) * 0.24;
+      head.g.scale.setScalar(Math.max(headSizeFactor, 0.001));
+      head.g.rotation.set(
+        0.12 + Math.sin(t * 0.25 - 0.35) * 0.015 * motionScale + breezeZ * 0.14 + headWilt,
+        0,
+        0.1 + Math.sin(t * 0.21 - 0.45) * 0.02 * motionScale - breezeX * 0.16 + headWilt * 0.32
+      );
+      receptacle.visible = active && calyxMat.opacity > 0.004 && headGrow > 0.02;
+      core.scale.set(1, 1.38, 1);
+
+      const sepalOpen = smootherstep(0.0, 0.58, state.bloom);
+      const sepalWilted = smootherstep(0.12, 0.88, state.decayProgress);
+      for (let i = 0; i < calyxSepals.length; i++) {
+        calyxSepals[i].rotation.z = -0.25 - 0.52 * sepalOpen - 0.34 * sepalWilted;
+      }
+
+      const heartPulse = 0.85 + 0.15 * Math.sin(t * 0.72);
+      const heartEnergy = active ? smootherstep(0.15, 0.9, state.bloom) * (1 - smootherstep(0.2, 0.85, state.decayProgress)) * heartPulse : 0;
+      U.heartGlow.value = heartEnergy;
+      heartAura.material.opacity = heartEnergy * 0.24 * lerp(1.0, 0.08, crystalPhase);
+      heartAura.scale.setScalar(lerp(0.95, 1.95, smootherstep(0, 1, state.bloom)) * (0.95 + 0.05 * heartPulse));
+
+      budAntherMat.uniforms.uTime.value = t;
+      budAntherMat.uniforms.uOpacity.value = active ? smootherstep(0.38, 0.96, state.bloom) * decayFade * lerp(0.85, 0.0, crystalPhase) : 0;
+      budAnthers.visible = budAntherMat.uniforms.uOpacity.value > 0.01;
+
+      const breathAmp = smootherstep(0.55, 1.0, state.bloom) * (1 - state.decayProgress) * 0.015 * motionScale;
+      const hasDust = state.decayProgress > 0.001;
+      dustUniforms.uTime.value = t;
+      dustPoints.visible = active && hasDust;
+
+      plant.updateMatrixWorld(true);
+      core.getWorldPosition(_heartWorldPos);
+      U.heartWorld.value.copy(_heartWorldPos);
+      pollenUniforms.uOrigin.value.copy(_heartWorldPos);
+      pollenUniforms.uTime.value = t;
+      pollenUniforms.uVisibility.value = active ? smootherstep(0.35, 0.95, state.bloom) * (1 - smootherstep(0.35, 0.92, state.decayProgress)) : 0;
+
+      const budAlpha = smootherstep(0.08, 0.48, headGrow);
+      for (let i = 0; i < head.petals.length; i++) {
+        const p = head.petals[i];
+        const b = smootherstep(p.delay, p.delay + 0.64, state.bloom);
+        const breath = 1 + Math.sin(t * 0.65 + p.ph) * breathAmp + 0.14 * crystalPhase * (0.4 + 0.6 * p.k);
+        const d = smootherstep(p.decayDelay, p.decayDelay + 0.62, state.decayProgress);
+
+        if (budAlpha > 0.002 && (d < 0.96 || hasDust)) {
+          updatePetalGeometry(p, b, breath, d);
+        }
+
+        const moveEase = easeInOutCubic(d);
+        const swirl = d * p.swirlSign * 1.95;
+        const cosS = Math.cos(swirl), sinS = Math.sin(swirl);
+        const dx = p.detachDir.x * cosS - p.detachDir.z * sinS;
+        const dz = p.detachDir.x * sinS + p.detachDir.z * cosS;
+
+        const liftArc = Math.sin(Math.PI * d) * 0.22 - d * d * 0.20;
+        p.mesh.position.set(
+          dx * p.detachDist * moveEase,
+          p.detachDir.y * p.detachDist * moveEase + liftArc,
+          dz * p.detachDist * moveEase
+        );
+        p.mesh.rotation.set(
+          p.rotTarget.x * moveEase,
+          p.rotTarget.y * moveEase + swirl * 0.35,
+          p.rotTarget.z * moveEase
+        );
+        p.mesh.scale.setScalar(lerp(1, 0.72, smootherstep(0.35, 1, d)));
+
+        const petalCrystal = lerp(1.0, 0.015 + 0.013 * (1 - p.k), crystalPhase);
+        const decayAlpha = 1 - smootherstep(0.30, 0.94, d);
+        const finalAlpha = clamp(budAlpha * decayAlpha * petalCrystal);
+        const petalDecayT = smoothstep(0.05, 0.95, d);
+        p.mesh.material.userData.uPetalDecay.value = petalDecayT;
+        p.mesh.material.opacity = finalAlpha;
+        p.mesh.material.transparent = finalAlpha < 0.995 || petalDecayT > 0.01;
+        p.mesh.material.depthWrite = finalAlpha > 0.72 && petalDecayT < 0.45;
+        p.mesh.visible = active && finalAlpha > 0.002;
+
+        if (hasDust && active) {
+          const posArr = p.geo.attributes.position.array;
+          const dustAppear = smootherstep(0.12, 0.46, d);
+          const dustSettle = lerp(0.92, 0.42, smootherstep(0.68, 1.0, d));
+          const pAlpha = dustAppear * dustSettle;
+          const driftProgress = smootherstep(0.16, 1.0, d);
+
+          for (let k = 0; k < DUST_PER_PETAL; k++) {
+            const di = i * DUST_PER_PETAL + k;
+            const bind = dustBindings[di];
+            const vi = bind.vertexIndex * 3;
+
+            _dustLocal.set(posArr[vi], posArr[vi + 1], posArr[vi + 2]);
+            _dustWorld.copy(_dustLocal).applyMatrix4(p.mesh.matrixWorld);
+
+            const angleShift = driftProgress * bind.swirlSpeed + Math.sin(t * 0.35 + bind.phase) * 0.1 * driftProgress;
+            const ca = Math.cos(angleShift), sa = Math.sin(angleShift);
+            const ox = bind.offsetX * bind.driftSpeed * driftProgress;
+            const oy = bind.offsetY * bind.driftSpeed * 0.72 * driftProgress + Math.sin(t * 0.48 + bind.phase) * 0.09 * driftProgress;
+            const oz = bind.offsetZ * bind.driftSpeed * driftProgress;
+
+            const rx = ox * ca - oz * sa;
+            const rz = ox * sa + oz * ca;
+
+            const outIdx = di * 3;
+            dustPosArray[outIdx] = _dustWorld.x + rx;
+            dustPosArray[outIdx + 1] = _dustWorld.y + oy;
+            dustPosArray[outIdx + 2] = _dustWorld.z + rz;
+            dustAlphaArray[di] = pAlpha * (0.65 + 0.35 * Math.sin(t * 0.8 + bind.phase));
+          }
+        }
+      }
+
+      // Live Dewdrop tracking on petals & upper leaves
+      const dewVis = active ? smootherstep(0.45, 0.98, state.bloom) * (1 - smootherstep(0.05, 0.35, state.decayProgress)) * (1 - crystalPhase * 0.92) : 0;
+      dewUniforms.uTime.value = t;
+      dewUniforms.uOpacity.value = dewVis;
+      for (let i = 0; i < dewDrops.length; i++) {
+        const dw = dewDrops[i];
+        dw.m.visible = dewVis > 0.015;
+        if (dw.kind === 'petal' && dw.m.visible) {
+          const p = head.petals[Math.min(dw.pi, head.petals.length - 1)];
+          const arr = p.geo.attributes.position.array;
+          dw.m.position.set(arr[dw.vIdx], arr[dw.vIdx + 1], arr[dw.vIdx + 2]);
+        }
+      }
+
+      if (hasDust && active) {
+        dustPosAttr.needsUpdate = true;
+        dustAlphaAttr.needsUpdate = true;
+      }
+    }
+
+    function updateButterflies(dt) {
+      const t = state.simTime;
+      const active = state.mode !== 'void';
+      const lifeVis = 1 - smootherstep(0.4, 0.95, state.decayProgress);
+      const portraitTighten = W < H ? 0.76 : 1.0;
+
+      for (let i = 0; i < flies.length; i++) {
+        const f = flies[i];
+        const a = t * f.speed + f.phaseOffset;
+        const r = f.orbitR * portraitTighten;
+
+        const x = Math.cos(a) * r;
+        const z = Math.sin(a * 2.0) * (r * 0.56);
+        const y = f.orbitY + Math.sin(a * 1.5 + 0.6) * 0.42;
+
+        const vx = -Math.sin(a) * f.speed * r;
+        const vz = Math.cos(a * 2.0) * 2.0 * f.speed * (r * 0.56);
+        const vy = Math.cos(a * 1.5 + 0.6) * 1.5 * f.speed * 0.42;
+
+        const flapRate = (4.8 + clamp(vy * 3.5, -1.5, 2.2)) * motionScale;
+        f.flapPhase += flapRate * dt;
+        const glideEnvelope = 0.70 + 0.30 * Math.sin(t * 0.55 + f.phaseOffset);
+        const flap = Math.sin(f.flapPhase) * 0.54 * glideEnvelope;
+
+        f.g.position.set(x, y, z);
+        f.g.rotation.set(0.24 - vy * 0.25, Math.atan2(vx, vz), -vx * 0.14);
+        f.wl.rotation.y = flap;
+        f.wr.rotation.y = -flap;
+
+        const revealFly = active ? smootherstep(4.2 * motionScale, 6.8 * motionScale, state.activeTime) : 0;
+        const flyScale = Math.max(revealFly * 0.54 * lerp(0.75, 1, lifeVis), 0.001);
+        f.g.scale.setScalar(flyScale);
+        const flyInfFade = 1 - smoothstep(0.04, 0.48, state.infiniteTravel);
+        const flyAlpha = revealFly * lifeVis * flyInfFade;
+        f.mats[0].opacity = flyAlpha;
+        f.mats[1].opacity = flyAlpha;
+        f.mats[2].opacity = flyAlpha * 0.72;
+        f.g.visible = active && flyAlpha > 0.005;
+      }
+    }
+
+    function updateCamera(dt) {
+      const isVoid = state.mode === 'void';
+      const targetAutoWeight = dragging ? 0 : 1;
+      state.autoOrbitWeight = damp(state.autoOrbitWeight, targetAutoWeight, 2.2, dt);
+
+      const targetTravel = state.infiniteActive ? 1 : 0;
+      const travelSmoothTime = (state.infiniteActive ? 1.55 : 1.4) * motionScale;
+      state.infiniteTravel = smoothDamp(state.infiniteTravel, targetTravel, _infTravelVel, travelSmoothTime, dt);
+      if (!state.infiniteActive && state.infiniteTravel < 0.001 && Math.abs(_infTravelVel.v) < 0.001) {
+        state.infiniteTravel = 0;
+        _infTravelVel.v = 0;
+      }
+
+      const dive = clamp(state.infiniteTravel);
+      const bloomTarget = state.infiniteActive ? 1 : smoothstep(0.04, 0.52, dive);
+      state.infiniteBloom = damp(state.infiniteBloom, bloomTarget, state.infiniteActive ? 3.2 : 4.2, dt);
+
+      if (!dragging) {
+        state.targetYaw += state.velYaw * dt;
+        state.targetPitch = clamp(state.targetPitch + state.velPitch * dt, -0.92, 0.92);
+        const inertiaDecay = Math.exp(-3.4 * dt);
+        state.velYaw *= inertiaDecay;
+        state.velPitch *= inertiaDecay;
+        state.targetYaw += (0.045 + 0.14 * dive) * motionScale * state.autoOrbitWeight * dt;
+      }
+      if (Math.abs(state.velZoom) > 0.001) {
+        state.targetZoom = clamp(state.targetZoom + state.velZoom * dt * 0.35, 0.50, 1.65);
+        state.velZoom *= Math.exp(-6.2 * dt);
+      }
+
+      state.yaw = damp(state.yaw, state.targetYaw, dragging ? 18.0 : 5.5, dt);
+      state.pitch = damp(state.pitch, state.targetPitch, dragging ? 18.0 : 5.5, dt);
+      state.zoom = damp(state.zoom, state.targetZoom, 6.5, dt);
+
+      // Cinematic awakening crane-up & intelligent zoom-in framing onto rose blossom
+      const introGlide = isVoid ? 0 : smootherstep(0, 6.8 * motionScale, state.activeTime);
+      const introDistFactor = state.userHasOrbited ? 1.0 : lerp(0.80, 1.0, introGlide);
+      const introPitchBias = state.userHasOrbited ? 0 : lerp(0.14, 0, introGlide);
+      const zoomFocusT = smoothstep(0.94, 0.50, state.zoom);
+      const baseLookY = state.userHasOrbited ? 0.48 : lerp(-0.62, 0.48, introGlide);
+      const decayLift = lerp(0, 0.25, smootherstep(0.15, 0.85, state.decayProgress));
+      const zoomLookY = lerp(baseLookY, 1.72, zoomFocusT) + decayLift;
+
+      _camGoalTarget.set(0, zoomLookY, 0);
+      _camCurrentTarget.x = damp(_camCurrentTarget.x, _camGoalTarget.x, 4.2, dt);
+      _camCurrentTarget.y = damp(_camCurrentTarget.y, _camGoalTarget.y, 4.2, dt);
+      _camCurrentTarget.z = damp(_camCurrentTarget.z, _camGoalTarget.z, 4.2, dt);
+
+      // Anchor onto live rose chalice heart (blending safely while flower awakens)
+      heartCenter.getWorldPosition(_chaliceWorldPos);
+      const headGrow = isVoid ? 0 : smootherstep(0.32, 0.90, state.stemGrowth);
+      _chaliceAnchor.copy(_estChalicePos).lerp(_chaliceWorldPos, headGrow);
+
+      const portrait = H > W;
+      const offsetY = baseCamPos.y - 0.45;
+      const baseDist = Math.sqrt(baseCamPos.x * baseCamPos.x + offsetY * offsetY + baseCamPos.z * baseCamPos.z);
+      const decayPullBack = lerp(1.0, 1.08, smootherstep(0.12, 0.85, state.decayProgress));
+      const outDist = baseDist * state.zoom * introDistFactor * decayPullBack;
+      const outElev = clamp(Math.asin(offsetY / baseDist) + state.pitch + introPitchBias, -0.82, 0.82);
+
+      // Continuous zoom works seamlessly inside Infinite Flower too
+      const infZoomScale = lerp(0.66, 1.40, clamp((state.zoom - 0.50) / 1.15));
+      const insideDist = (portrait ? 3.85 : 2.55) * infZoomScale;
+      const insideElev = clamp((portrait ? 0.36 : 0.42) + state.pitch * 0.44, 0.14, 1.08);
+
+      // Single continuous spherical trajectory + log-distance zoom (zero snaps or teleports)
+      const focusT = smoothstep(0.0, 0.82, dive);
+      _camFinalLook.lerpVectors(_camCurrentTarget, _chaliceAnchor, focusT);
+      if (portrait) _camFinalLook.y -= 0.22 * focusT;
+
+      // Subtle cinema lens dolly-FOV breath deepens immersion when diving inside the flower
+      const targetFov = lerp(40, 46, dive) + Math.sin(Math.PI * dive) * 2.2;
+      if (Math.abs(cam.fov - targetFov) > 0.01) {
+        cam.fov = targetFov;
+        cam.updateProjectionMatrix();
+      }
+
+      const camDist = Math.exp(lerp(Math.log(outDist), Math.log(insideDist), dive));
+      const arcElev = 0.14 * Math.sin(Math.PI * dive);
+      const camElev = lerp(outElev, insideElev, dive) + arcElev;
+
+      const parallaxScale = lerp(1.0, 0.22, dive);
+      const px = state.pointerInside && !dragging ? pointerNdc.x * 0.18 * motionScale * parallaxScale : 0;
+      const py = state.pointerInside && !dragging ? pointerNdc.y * 0.09 * motionScale * parallaxScale : 0;
+
+      cam.position.set(
+        _camFinalLook.x + Math.sin(state.yaw) * Math.cos(camElev) * camDist + px,
+        _camFinalLook.y + Math.sin(camElev) * camDist + py,
+        _camFinalLook.z + Math.cos(state.yaw) * Math.cos(camElev) * camDist
+      );
+      cam.lookAt(_camFinalLook);
+      cam.updateMatrixWorld();
+
+      // Project live 3D chalice heart into normalized screen coords so background corona tracks it seamlessly
+      _projVec.copy(_chaliceAnchor).project(cam);
+      _heartScreenPos.x = clamp(_projVec.x * 0.5 + 0.5, 0.05, 0.95);
+      _heartScreenPos.y = clamp(-_projVec.y * 0.5 + 0.5, 0.05, 0.95);
+
+      // === Inner Universe Update — Recursive Infinite Sanctuary ===
+      const bloomWave = state.infiniteBloom;
+      const showUniverse = bloomWave > 0.004 || dive > 0.004;
+      innerUniverse.visible = !isVoid && showUniverse;
+      if (!innerUniverse.visible) return;
+
+      innerUniverse.position.copy(_chaliceAnchor);
+      innerUniverse.rotation.y += dt * (0.08 + 0.22 * dive);
+      innerUniverse.rotation.x = head.g.rotation.x * 0.5 + Math.sin(state.simTime * 0.16) * 0.09 * dive;
+      innerUniverse.rotation.z = head.g.rotation.z * 0.5;
+
+      const universeScale = lerp(0.36, 1.06, smootherstep(0.0, 1.0, bloomWave * 0.55 + dive * 0.45));
+      innerUniverse.scale.setScalar(universeScale);
+
+      const masterVis = smootherstep(0.0, 0.35, bloomWave);
+
+      // Volumetric Cosmic Nebula Veils inside the sanctuary
+      infNebulaMat.uniforms.uTime.value = state.simTime;
+      infNebulaMat.uniforms.uOpacity.value = masterVis * lerp(0.18, 0.36, dive);
+      infNebulaPlanes[0].rotation.z += dt * 0.05;
+      infNebulaPlanes[1].rotation.z -= dt * 0.04;
+      infNebulaPlanes[2].rotation.y += dt * 0.06;
+
+      // Holographic Aperture Shockwave Ring
+      const shockT = clamp(state.infShock || 0);
+      shockRingMat.uniforms.uTime.value = state.simTime;
+      shockRingMat.uniforms.uOpacity.value = shockT * 0.78 * masterVis;
+      shockRing.visible = shockT > 0.01;
+      shockRing.scale.setScalar(lerp(1.45, 0.28, shockT));
+
+      // Subtle responsive attenuation prevents additive overexposure on compact portrait mobile viewports
+      const densityGain = clamp(W / 680, 0.56, 1.0);
+      const tierDensityScale = lerp(0.76, 1.0, densityGain);
+      const coreDensityScale = lerp(0.68, 1.0, densityGain);
+
+      // Layer 1: 8 Recursive Logarithmic Crystal Whorls seamlessly telescoping outward forever
+      const infTierVis = smootherstep(0.0, 0.26, bloomWave);
+      for (let ti = 0; ti < infiniteTiers.length; ti++) {
+        const tier = infiniteTiers[ti];
+        const cyc = (state.simTime * 0.135 * motionScale + tier.offset) % 1;
+        // Exponential zoom progression creates perceptually constant recursive speed filling the chalice
+        const sc = 0.13 * Math.pow(11.8, cyc) * lerp(0.80, 1.12, dive);
+        const env = smootherstep(0.0, 0.20, cyc) * (1.0 - smootherstep(0.66, 1.0, cyc));
+        const unfurl = lerp(-0.34, 0.98, easeInOutCubic(cyc));
+        tier.group.scale.setScalar(sc);
+        tier.group.rotation.y = tier.dir * (cyc * 0.95 + state.simTime * 0.075 * motionScale);
+        tier.group.position.y = lerp(-0.07, -0.22, cyc);
+        for (let pi = 0; pi < tier.pivots.length; pi++) {
+          tier.pivots[pi].rotation.x = unfurl;
+        }
+        tier.uniforms.uTime.value = state.simTime;
+        tier.uniforms.uCycle.value = cyc;
+        const tierCycleFade = lerp(0.32, 1.0, smoothstep(0.0, 0.30, cyc));
+        tier.uniforms.uOpacity.value = env * infTierVis * lerp(0.30, 0.52, dive) * tierCycleFade * tierDensityScale;
+        tier.uniforms.uShimmer.value = 0.85 + 0.15 * Math.sin(state.simTime * 1.8 + ti * 1.1);
+      }
+
+      // Layer 2: Astrolabe Orbital Constellations, Flowing Light Arcs & Comet-Tail Pearls
+      for (let ri = 0; ri < orbitMaterials.length; ri++) {
+        const ringFrac = ri / 11;
+        const stagger = smootherstep(ringFrac * 0.40, ringFrac * 0.40 + 0.45, bloomWave);
+        const shimmer = 0.74 + 0.26 * Math.sin(state.simTime * 1.1 + ri * 0.65);
+        orbitMaterials[ri].opacity = stagger * lerp(0.42, 0.68, dive) * shimmer;
+        orbitLines[ri].rotation.z += dt * orbitSpinSpeeds[ri] * (0.4 + 0.65 * dive);
+      }
+      for (let wi = 0; wi < orbitWaveUniforms.length; wi++) {
+        orbitWaveUniforms[wi].uTime.value = state.simTime;
+        orbitWaveUniforms[wi].uOpacity.value = masterVis * lerp(0.35, 0.85, dive);
+      }
+
+      beadUniforms.uTime.value = state.simTime;
+      beadUniforms.uOpacity.value = masterVis * lerp(0.75, 1.0, dive) * lerp(0.84, 1.0, densityGain);
+
+      // Layer 3: Ethereal Moonstone Rose-Pearl Heart
+      const doubleBeat = Math.pow(Math.abs(Math.sin(state.simTime * 2.0)), 1.6);
+      const heartbeat = 1.0 + 0.16 * doubleBeat;
+
+      heartOrbUniforms.uTime.value = state.simTime;
+      heartOrbUniforms.uOpacity.value = masterVis * lerp(0.84, 0.98, dive) * coreDensityScale;
+      heartOrbUniforms.uBeat.value = doubleBeat;
+      const orbScale = (1.0 + 0.12 * doubleBeat) * lerp(0.80, 1.05, dive);
+      heartOrb.scale.set(orbScale, orbScale * 1.08, orbScale);
+      heartOrb.rotation.y -= dt * 0.45;
+
+      innerCoreMat.opacity = masterVis * lerp(0.10, 0.20, dive) * tierDensityScale;
+      innerCore.scale.setScalar(heartbeat * lerp(0.68, 1.04, dive));
+      innerCore.rotation.y += dt * 0.42;
+
+      innerJewelMat.opacity = masterVis * lerp(0.24, 0.48, dive);
+      innerJewel.scale.setScalar((1.0 + 0.10 * (1.0 - doubleBeat)) * lerp(0.72, 1.04, dive));
+      innerJewel.rotation.y -= dt * 0.36;
+      innerJewel.rotation.x += dt * 0.16;
+
+      coreHaloMat.opacity = masterVis * (0.045 + 0.050 * dive + 0.025 * doubleBeat) * coreDensityScale;
+      coreHalo.scale.setScalar(lerp(0.36, 0.54, dive) * (0.94 + 0.10 * doubleBeat));
+
+      coreStarMat.opacity = masterVis * (0.065 + 0.080 * dive + 0.03 * doubleBeat) * coreDensityScale;
+      coreStarFlare.scale.setScalar(lerp(0.44, 0.80, dive) * (0.88 + 0.18 * doubleBeat));
+      coreStarMat.rotation += dt * 0.20 * motionScale;
+
+      // Layer 4: Celestial Armillary Dome, Sacred Rose Mandala & Anther-Tipped Golden Stamens
+      outerSphereMat.opacity = smootherstep(0.15, 0.75, bloomWave) * lerp(0.18, 0.32, dive);
+      outerDome.rotation.y -= dt * 0.09;
+      outerDome.rotation.z += dt * 0.05;
+
+      const mandalaVis = smootherstep(0.10, 0.68, bloomWave);
+      petalRingMat.opacity = mandalaVis * lerp(0.38, 0.74, dive);
+      petalRingInnerMat.opacity = mandalaVis * lerp(0.36, 0.74, dive);
+      petalRingLotusMat.opacity = mandalaVis * lerp(0.30, 0.68, dive);
+      mandalaGroup.rotation.y += dt * 0.14;
+      mandalaGroup.scale.setScalar(0.95 + 0.08 * Math.sin(state.simTime * 1.1));
+
+      stamenMat.opacity = masterVis * lerp(0.45, 0.78, dive);
+      stamenPearlUniforms.uTime.value = state.simTime;
+      stamenPearlUniforms.uOpacity.value = masterVis * lerp(0.60, 0.96, dive) * coreDensityScale;
+      stamenGroup.rotation.y -= dt * 0.12;
+      stamenGroup.scale.setScalar(lerp(0.76, 1.06, dive) + 0.05 * doubleBeat);
+
+      // Layer 5: 260 Prismatic Star-Spark Glints
+      sparkUniforms.uTime.value = state.simTime;
+      sparkUniforms.uOpacity.value = smootherstep(0.08, 0.60, bloomWave) * lerp(0.70, 1.0, dive);
+    }
+
+    function updateParticleField(dt) {
+      const active = state.mode !== 'void';
+      if (state.pointerInside) {
+        raycaster.setFromCamera(pointerNdc, cam);
+        if (raycaster.ray.intersectPlane(pointerPlane, pointerHit)) pointerTarget.copy(pointerHit);
+      }
+      particleUniforms.uPointer.value.x = damp(particleUniforms.uPointer.value.x, pointerTarget.x, 5.5, dt);
+      particleUniforms.uPointer.value.y = damp(particleUniforms.uPointer.value.y, pointerTarget.y, 5.5, dt);
+      particleUniforms.uPointer.value.z = damp(particleUniforms.uPointer.value.z, pointerTarget.z, 5.5, dt);
+
+      const targetPtrStrength = state.pointerInside && active ? 1 : 0;
+      state.pointerStrength = damp(state.pointerStrength, targetPtrStrength, 3.8, dt);
+      particleUniforms.uPointerStrength.value = state.pointerStrength;
+
+      state.pulse = damp(state.pulse, state.pulseTarget, 6.0, dt);
+      state.pulseTarget = damp(state.pulseTarget, 0, 2.2, dt);
+      particleUniforms.uPulse.value = state.pulse;
+
+      particleUniforms.uTime.value = state.simTime;
+      const infFieldDim = lerp(1.0, 0.42, state.infiniteTravel);
+      const targetVis = state.showParticles && active ? (0.28 + 0.72 * state.reveal) * infFieldDim : 0;
+      particleUniforms.uVisibility.value = damp(particleUniforms.uVisibility.value, targetVis, 4.0, dt);
+    }
+
+    function drawBackground(dt) {
+      const t = state.simTime;
+      const active = state.mode !== 'void';
+      const panX = -Math.sin(state.yaw * 0.45);
+      const panY = Math.sin(state.pitch);
+      const doubleBeat = Math.pow(Math.abs(Math.sin(t * 2.0)), 1.6);
+
+      state.infShock = damp(state.infShock || 0, 0, 1.85, dt);
+
+      bgUniforms.uTime.value = t;
+      bgUniforms.uPan.value.set(panX, panY);
+      bgUniforms.uReveal.value = active ? state.reveal : 0;
+      bgUniforms.uDecay.value = state.decayProgress;
+      bgUniforms.uInfBloom.value = state.infiniteBloom;
+      bgUniforms.uInfTravel.value = state.infiniteTravel;
+      bgUniforms.uInfShock.value = state.infShock || 0;
+      bgUniforms.uHeartUv.value.set(_heartScreenPos.x, 1.0 - _heartScreenPos.y);
+      bgUniforms.uHeartBeat.value = doubleBeat;
+      bgUniforms.uPointerUv.value.set(pointerNdc.x * 0.5 + 0.5, pointerNdc.y * 0.5 + 0.5);
+      bgUniforms.uPointerGlow.value = state.pointerStrength * (1.0 - state.infiniteTravel * 0.6);
+
+      ambientUniforms.uTime.value = t;
+      ambientUniforms.uPan.value.set(panX, panY);
+      ambientUniforms.uReveal.value = active ? state.reveal : 0;
+      ambientUniforms.uInfTravel.value = state.infiniteTravel;
+    }
+
+    // ============================================================================
+    // MAIN DELTA-TIME RENDER LOOP
+    // ============================================================================
+    lastNow = performance.now();
+
+    function frame(now) {
+      const rawDt = (now - lastNow) / 1000;
+      lastNow = now;
+      const dt = clamp(rawDt, 0, 0.05);
+      state.simTime += dt;
+      U.t.value = state.simTime;
+
+      if (rawDt > 0 && rawDt < 0.12) {
+        avgFrameDt = damp(avgFrameDt, rawDt, 1.5, rawDt);
+        if (DPR > 1.05 && avgFrameDt > 0.038) {
+          slowFrameStreak += rawDt;
+          if (slowFrameStreak > 1.6 && dprScale > 0.72) {
+            dprScale = 0.72;
+            slowFrameStreak = 0;
+            resize();
+          }
+        } else {
+          slowFrameStreak = Math.max(0, slowFrameStreak - rawDt);
+        }
+      }
+
+      updateTimeline(dt);
+      updateFlowerAndDissolution(dt);
+      updateButterflies(dt);
+      updateCamera(dt);
+      drawBackground(dt);
+      updateParticleField(dt);
+      updateAudioDynamics();
+
+      renderer.render(scene, cam);
+      requestAnimationFrame(frame);
+    }
+
+    resetExperience();
+    enterVoid();
+    requestAnimationFrame(frame);
+  </script>
 </body>
+
 </html>
